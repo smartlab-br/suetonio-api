@@ -38,12 +38,6 @@ Copyright © 2016, Sobolev Nikita - [MIT License](https://github.com/andyzt/flas
 **[Pandas](https://pandas.pydata.org)**\
 Copyright © 2008-2012, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team - [BSD 3-Clause License](http://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#license)
 
-**[Pylint](https://www.pylint.org)**\
-Copyright © 1989, 1991 Free Software Foundation, Inc. - [GNU General Public License v2.0](https://github.com/PyCQA/pylint/blob/master/COPYING)
-
-**[Nose2](https://nose2.readthedocs.io)**\
-Copyright © 2012, Jason Pellerin - [BSD 3-Clause License](https://github.com/nose-devs/nose2/blob/master/license.txt)
-
 **[NumPy](https://www.numpy.org)**\
 Copyright © 2019 NumPy developers - [BSD 3-Clause License](https://www.numpy.org/license.html)
 
