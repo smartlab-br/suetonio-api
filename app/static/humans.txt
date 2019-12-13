@@ -1,1 +1,1 @@
-davinci-api and related technologies are built by a few geeks dedicated to building a society more transparent and humane.
+suetonio-api and related technologies are built by a few geeks dedicated to building a society more transparent and humane.

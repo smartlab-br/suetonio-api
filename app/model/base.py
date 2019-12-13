@@ -369,7 +369,7 @@ class BaseModel(object):
 
     @staticmethod
     def del_keywords(struct):
-        ''' Removes davinci-only keywords from an object and returns it clean '''
+        ''' Removes suetonio-only keywords from an object and returns it clean '''
         keywords = ['as_is', 'keep_template']
         for keyword in keywords:
             if keyword in struct:
