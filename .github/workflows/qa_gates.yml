@@ -5,7 +5,7 @@ on:
     refs/heads:
       - master
       - staging
-      - developement
+      - development
       - contrib
 
 jobs:
