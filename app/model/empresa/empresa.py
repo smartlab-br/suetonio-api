@@ -29,7 +29,6 @@ class Empresa(BaseModel):
     def produce(self, cnpj_raiz):
         kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
         msg = bytes(cnpj_raiz, 'utf-8')
-        # TODO Check namespace for connection
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         for t in self.TOPICS:
             t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'

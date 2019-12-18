@@ -96,7 +96,7 @@ class EmpresaResource(BaseResource):
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
-                return "Not found", 404
+                return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 404
             else:
                 return "Error fetching data", e.response.status_code
 
