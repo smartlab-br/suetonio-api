@@ -7,7 +7,8 @@ from flask import current_app
 #pylint: disable=R0903
 class Empresa(BaseModel):
     ''' Definição do repo '''
-    TOPICS = ['rais', 'catweb', 'autos']
+    TOPICS = ['rais', 'rfb', 'sisben', 'catweb', 'auto', 'delphos', 'mni', 'caged', 'rfbsocios', 'rfbparticipacaosocietaria']
+
     def __init__(self):
         ''' Construtor '''
         self.repo = EmpresaRepository()
@@ -27,12 +28,10 @@ class Empresa(BaseModel):
 
     def produce(self, cnpj_raiz):
         kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
+        msg = bytes(cnpj_raiz, 'utf-8')
         # TODO Check namespace for connection
-        # TODO check broker version
-        print(kafka_server)
-        producer = KafkaProducer(bootstrap_servers=kafka_server)
-
+        producer = KafkaProducer(bootstrap_servers=[kafka_server])
         for t in self.TOPICS:
             t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'
-            print(t_name)
-            producer.send(t_name, cnpj_raiz)
+            producer.send(t_name, msg)
+        producer.close()
