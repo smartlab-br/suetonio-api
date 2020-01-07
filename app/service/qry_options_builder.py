@@ -41,27 +41,21 @@ class QueryOptionsBuilder():
         ''' Constrói as opções da pesquisa '''
         options = {}
 
-        column_family = None
         if 'dados' in r_args:
             options['column_family'] = r_args['dados']
-        column = None
         if 'competencia' in r_args:
             options['column'] = r_args['competencia']
-        id_pf = None
         if 'id_pf' in r_args:
             options['id_pf'] = r_args['id_pf']
-        perspective = None
         if 'perspectiva' in r_args:
             options['perspective'] = r_args['perspectiva']
-        only_meta = False
         if 'only_meta' in r_args and r_args['only_meta'] == 'S':
             options['only_meta'] = True
-        reduzido = False
         if 'reduzido' in r_args and r_args['reduzido'] == 'S':
             options['reduzido'] = True
 
         if mod == 'estabelecimento':
-            options['cnpj_raiz'] = cnpj[:-6]
+            options['cnpj_raiz'] = id_inv[:-6]
             options['cnpj'] = id_inv
         else:
             options['cnpj_raiz'] = id_inv

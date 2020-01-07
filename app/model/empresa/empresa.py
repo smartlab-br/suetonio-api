@@ -22,7 +22,7 @@ class Empresa(BaseModel):
     def find_datasets(self, options):
         ''' Localiza um todos os datasets de uma empresa pelo CNPJ Raiz '''
         (dataset, metadata) = self.get_repo().find_datasets(options)
-        if (only_meta):
+        if 'only_meta' in options and options['only_meta']:
             return { 'metadata': metadata, 'dataset': [] }
         return { 'metadata': metadata, 'dataset': dataset }
 
