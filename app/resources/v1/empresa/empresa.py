@@ -96,9 +96,36 @@ class EmpresaResource(BaseResource):
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
-                return "Not found", 404
+                return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 404
             else:
                 return "Error fetching data", e.response.status_code
+
+    @swagger.doc({
+        'tags':['empresa'],
+        'description':'Insere uma empresa na fila de análises.',
+        'parameters':[
+            {
+                "name": "cnpj_raiz",
+                "description": "CNPJ Raiz da empresa consultada",
+                "required": True,
+                "type": 'string',
+                "in": "path"
+            },
+        ],
+        'responses': {
+            '201': {'description': 'Empresa'}
+        }
+    })
+    def post(self, cnpj_raiz):
+        ''' Requisita uma nova análise de uma empresa '''
+        try:
+            self.__get_domain().produce(cnpj_raiz)
+            return 'Análise em processamento', 201
+        except TimeoutError:
+            return "Não foi possível incluir a análise na fila. Tente novamente mais tarde", 504
+        except (AttributeError, KeyError, ValueError) as err:
+            return str(err), 400
+
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:

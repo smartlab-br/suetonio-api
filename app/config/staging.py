@@ -28,6 +28,15 @@ class StagingConfig(object):
     data, stat = zk.get("/spai/suetonio-api/staging/hbase_port")
     HBASE_PORT = data.decode("utf-8")
     
+    data, stat = zk.get("/spai/suetonio-api/staging/kafka_host")
+    KAFKA_HOST = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/staging/kafka_port")
+    KAFKA_PORT = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/staging/kafka_schema")
+    KAFKA_SCHEMA = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/staging/kafka_topic_prefix")
+    KAFKA_TOPIC_PREFIX = data.decode("utf-8")
+    
     data, stat = zk.get("/spai/suetonio-api/staging/git_viewconf_url")
     GIT_VIEWCONF_BASE_URL = data.decode("utf-8")
     
