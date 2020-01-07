@@ -66,31 +66,13 @@ class EstabelecimentoResource(BaseResource):
     })
     def get(self, cnpj):
         ''' Obtém todos os datasets da empresa '''
-        column_family = None
-        if 'dados' in request.args:
-            column_family = request.args['dados']
-        column = None
-        if 'competencia' in request.args:
-            column = request.args['competencia']
-        id_pf = None
-        if 'id_pf' in request.args:
-            id_pf = request.args['id_pf']
-        perspective = None
-        if 'perspectiva' in request.args:
-            perspective = request.args['perspectiva']
-        only_meta = False
-        if 'only_meta' in request.args and request.args['only_meta'] == 'S':
-            only_meta = True
-        reduzido = False
-        if 'reduzido' in request.args and request.args['reduzido'] == 'S':
-            reduzido = True
-        cnpj_raiz = cnpj[:-6]
+        options = self.build_person_options(cnpj, request.args, mod='estabelecimento')
         try:
-            return self.__get_domain().find_datasets(cnpj_raiz, column_family, column, cnpj, id_pf=id_pf, only_meta=only_meta, simplified=reduzido, perspective=perspective)
+            return self.__get_domain().find_datasets(options)
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
-                return "Not found", 404
+                return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 404
             else:
                 return "Error fetching data", e.response.status_code
 

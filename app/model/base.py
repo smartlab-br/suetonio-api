@@ -55,7 +55,7 @@ class BaseModel(object):
         if dataset is None:
             return None
         if options is not None:
-            if 'as_pandas' in options and options['as_pandas']:
+            if any(mod in options and options[mod] for mod in ['as_pandas', 'as_is']):
                 return {
                     "metadata": self.fetch_metadata(),
                     "dataset": dataset
@@ -64,11 +64,6 @@ class BaseModel(object):
                 return {
                     "metadata": self.fetch_metadata(),
                     "dataset": dataset.to_dict('records')
-                }
-            elif 'as_is' in options and options['as_is']:
-                return {
-                    "metadata": self.fetch_metadata(),
-                    "dataset": dataset
                 }
         return f'{{ \
             "metadata": {json.dumps(self.fetch_metadata())}, \
@@ -210,10 +205,7 @@ class BaseModel(object):
                     }
                 }]
             elif isinstance(each_arg, list):
-                nu_list = []
-                for each_item in each_arg:
-                    nu_list.append(self.templates_to_fixed(each_item, data_collection))
-                struct[each_arg_key] = nu_list
+                struct[each_arg_key] = [self.templates_to_fixed(each_item, data_collection) for each_item in each_arg] 
             elif isinstance(each_arg, dict):
                 if 'template' in each_arg:
                     each_arg = self.replace_template_arg(each_arg, data_collection)
