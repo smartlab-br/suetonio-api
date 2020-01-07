@@ -28,6 +28,15 @@ class ProductionConfig(object):
     data, stat = zk.get("/spai/suetonio-api/prod/hbase_port")
     HBASE_PORT = data.decode("utf-8")
 
+    data, stat = zk.get("/spai/suetonio-api/prod/kafka_host")
+    KAFKA_HOST = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/kafka_port")
+    KAFKA_PORT = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/kafka_schema")
+    KAFKA_SCHEMA = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/kafka_topic_prefix")
+    KAFKA_TOPIC_PREFIX = data.decode("utf-8")
+    
     data, stat = zk.get("/spai/suetonio-api/prod/git_viewconf_url")
     GIT_VIEWCONF_BASE_URL = data.decode("utf-8")
     

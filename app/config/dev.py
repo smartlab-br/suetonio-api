@@ -14,3 +14,8 @@ class DevelopmentConfig(object):
 
     HBASE_HOST = os.getenv('HBASE_HOST')
     HBASE_PORT = os.getenv('HBASE_PORT')
+
+    KAFKA_HOST = os.getenv('KAFKA_HOST')
+    KAFKA_PORT = os.getenv('KAFKA_PORT')
+    KAFKA_SCHEMA = os.getenv('KAFKA_SCHEMA')
+    KAFKA_TOPIC_PREFIX = os.getenv('KAFKA_TOPIC_PREFIX')

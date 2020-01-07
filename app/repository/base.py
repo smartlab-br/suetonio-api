@@ -617,13 +617,12 @@ class HBaseRepository(object):
 
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
-        # self.dao = get_hbase_connection()
+        pass
 
     def find_row(self, table, key, column_family, column):
         ''' Obtém dataset de acordo com os parâmetros informados '''
         import json
         import base64
-        # import zlib
         import gzip
         from pandas.io.json import json_normalize
 
@@ -643,8 +642,6 @@ class HBaseRepository(object):
         result = {}
         row = json.loads(response.content)['Row']
         for row_key in row:
-            analysis_unit = base64.urlsafe_b64decode(row_key['key'])
-
             for col in row_key['Cell']:
                 colfam = base64.urlsafe_b64decode(col['column'])
                 column_parts = colfam.decode('UTF-8').split(':')
