@@ -290,7 +290,7 @@ class BaseModel(object):
         any_nodata = False
         for each_inst in each_obj_struct['instances']:
             try:
-                data_collection[each_inst['name']] = get_collection_from_type(each_inst['type'], each_inst['named_prop'], each_obj['dataset'])
+                data_collection[each_inst['name']] = get_collection_from_type(each_inst['type'], each_inst['named_prop'], each_obj['dataset'], options['cd_analysis_unit'])
             except:
                 data_collection[each_inst['name']] = None
                 any_nodata = True
@@ -300,10 +300,10 @@ class BaseModel(object):
         return (data_collection, any_nodata)
 
     @staticmethod
-    def get_collection_from_type(inst_type, named_prop, dataset):
+    def get_collection_from_type(inst_type, named_prop, dataset, id_au):
         ''' Use pandas filter to set a collection '''
         if inst_type == 'from_id':
-            return dataset.loc[dataset[named_prop] == int(options['cd_analysis_unit'])].iloc[0]
+            return dataset.loc[dataset[named_prop] == int(id_au)].iloc[0]
         elif inst_type == 'first_occurence':
             return dataset.reset_index().loc[0]
         elif inst_type == 'min':
