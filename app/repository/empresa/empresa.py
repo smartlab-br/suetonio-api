@@ -24,10 +24,10 @@ class EmpresaRepository(HBaseRepository):
     } 
     SIMPLE_COLUMNS = {}
 
-    def find_datasets(self, cnpj_raiz, column_family, column, cnpj=None, id_pf=None, simplified=False, perspective=None):
+    def find_datasets(self, options):
         ''' Localiza um município pelo código do IBGE '''
-        if cnpj_raiz is not None:
-            result = self.find_row('empresa', cnpj_raiz, column_family, column)
+        if 'cnpj_raiz' in options and options['cnpj_raiz'] is not None:
+            result = self.find_row('empresa', options['cnpj_raiz'], options['column_family'], options['column'])
             metadata = {}
 
             for ds_key in result:
@@ -40,29 +40,36 @@ class EmpresaRepository(HBaseRepository):
 
                 if not result[ds_key].empty:
                     # Filtrar cnpj e id_pf nos datasets pandas
-                    if cnpj is not None and id_pf is not None and col_pf_name is not None:
+                    if ('cnpj' in options and options['cnpj'] is not None and 
+                        'id_pf' in options and options['id_pf'] is not None and 
+                        col_pf_name is not None):
+                        cnpj = options['cnpj']
+                        id_pf = options['id_pf']
                         if result[ds_key][col_cnpj_name].dtype == 'int64':
                             cnpj = int(cnpj)
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
                         result[ds_key] = result[ds_key][(result[ds_key][col_cnpj_name] == cnpj) & (result[ds_key][col_pf_name] == id_pf)]
                     # Filtrar apenas cnpj nos datasets pandas
-                    elif cnpj is not None:
+                    elif 'cnpj' in options and options['cnpj'] is not None:
+                        cnpj = options['cnpj']
                         if result[ds_key][col_cnpj_name].dtype == 'int64':
                             cnpj = int(cnpj)
                         result[ds_key] = result[ds_key][result[ds_key][col_cnpj_name] == cnpj]
                     # Filtrar apenas id_pf nos datasets pandas
-                    elif id_pf is not None and col_pf_name is not None:
+                    elif 'id_pf' in options and options['id_pf'] is not None and col_pf_name is not None:
+                        id_pf = options['id_pf']
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
                         result[ds_key] = result[ds_key][result[ds_key][col_pf_name] == id_pf]
 
-                    if perspective is not None and ds_key in self.PERSP_COLUMNS:
-                        result[ds_key] = result[ds_key][result[ds_key][self.PERSP_COLUMNS[ds_key]] == perspective]
+                    if ('perspective' in options and options['perspective'] is not None and
+                        ds_key in self.PERSP_COLUMNS):
+                        result[ds_key] = result[ds_key][result[ds_key][self.PERSP_COLUMNS[ds_key]] == options['perspective']]
 
                     if not result[ds_key].empty: # Not empty after filters
                         # Redução de dimensionalidade (simplified)
-                        if simplified:
+                        if 'simplified' in options and options['simplified']:
                             list_dimred = ['nu_cnpj_cei', 'nu_cpf', 'col_compet']
                             if ds_key in self.SIMPLE_COLUMNS:
                                 list_dimred = self.SIMPLE_COLUMNS[ds_key]
