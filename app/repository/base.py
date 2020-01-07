@@ -1,5 +1,6 @@
 ''' Repository genérico '''
 import requests
+import json
 from flask import current_app
 from impala.util import as_pandas
 from datasources import get_hive_connection, get_impala_connection, get_hbase_connection
@@ -611,14 +612,8 @@ class HBaseRepository(object):
         ''' Método abstrato para carregamento do dataset '''
         pass
 
-    def find_row(self, table, key, column_family, column):
-        ''' Obtém dataset de acordo com os parâmetros informados '''
-        import json
-        import base64
-        import gzip
-        from pandas.io.json import json_normalize
-
-        # Gets rows based on table and key values
+    def fetch_data(self, table, key, column_family, column):
+        ''' Gets data from HBase instance '''
         url = "http://" + current_app.config["HBASE_HOST"] + ":" + current_app.config["HBASE_PORT"] + "/" + table + "/" + key 
         if column_family is not None:
             url = url + "/" + str(column_family)
@@ -630,10 +625,17 @@ class HBaseRepository(object):
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
 
+        return json.loads(response.content)['Row']
+
+    def find_row(self, table, key, column_family, column):
+        ''' Obtém dataset de acordo com os parâmetros informados '''
+        import base64
+        import gzip
+        from pandas.io.json import json_normalize
+
         # Makes sure the returning data will be a JSON
         result = {}
-        row = json.loads(response.content)['Row']
-        for row_key in row:
+        for row_key in self.fetch_data(table, key, column_family, column):
             for col in row_key['Cell']:
                 colfam = base64.urlsafe_b64decode(col['column'])
                 column_parts = colfam.decode('UTF-8').split(':')
