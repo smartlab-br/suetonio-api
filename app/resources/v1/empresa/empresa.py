@@ -73,26 +73,9 @@ class EmpresaResource(BaseResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém todos os datasets da empresa '''
-        column_family = None
-        if 'dados' in request.args:
-            column_family = request.args['dados']
-        column = None
-        if 'competencia' in request.args:
-            column = request.args['competencia']
-        id_pf = None
-        if 'id_pf' in request.args:
-            id_pf = request.args['id_pf']
-        perspective = None
-        if 'perspectiva' in request.args:
-            perspective = request.args['perspectiva']
-        only_meta = False
-        if 'only_meta' in request.args and request.args['only_meta'] == 'S':
-            only_meta = True
-        reduzido = False
-        if 'reduzido' in request.args and request.args['reduzido'] == 'S':
-            reduzido = True
+        options = self.build_person_options(cnpj_raiz, request.args)
         try:
-            return self.__get_domain().find_datasets(cnpj_raiz, column_family, column, id_pf=id_pf, only_meta=only_meta, simplified=reduzido, perspective=perspective)
+            return self.__get_domain().find_datasets(options)
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
