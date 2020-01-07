@@ -1,7 +1,6 @@
 ''' Repository para recuperar informações de uma empresa '''
 from repository.base import HBaseRepository
 import json
-# import pandas as pd
 
 #pylint: disable=R0903
 class EmpresaRepository(HBaseRepository):
@@ -27,13 +26,7 @@ class EmpresaRepository(HBaseRepository):
 
     def find_datasets(self, cnpj_raiz, column_family, column, cnpj=None, id_pf=None, simplified=False, perspective=None):
         ''' Localiza um município pelo código do IBGE '''
-        # Performance evaluation timestamp baseline
-        # from datetime import datetime
-        # import dateutil.relativedelta
-        # ts_init = datetime.now()
-
         if cnpj_raiz is not None:
-            # return self.find_row(self.TABLE, cnpj_raiz)
             result = self.find_row('empresa', cnpj_raiz, column_family, column)
             metadata = {}
 
@@ -103,9 +96,5 @@ class EmpresaRepository(HBaseRepository):
 
                 # Conversão dos datasets em json
                 result[ds_key] = json.loads(result[ds_key].to_json(orient="records"))
-
-            # ts_finish = datetime.now()
-            # rd = dateutil.relativedelta.relativedelta (ts_finish, ts_init)
-            # print("%d years, %d months, %d days, %d hours, %d minutes and %d seconds" % (rd.years, rd.months, rd.days, rd.hours, rd.minutes, rd.seconds))
 
             return (result, metadata)

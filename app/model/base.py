@@ -55,7 +55,7 @@ class BaseModel(object):
         if dataset is None:
             return None
         if options is not None:
-            if 'as_pandas' in options and options['as_pandas']:
+            if any(mod in options and options[mod] for mod in ['as_pandas', 'as_is']):
                 return {
                     "metadata": self.fetch_metadata(),
                     "dataset": dataset
@@ -64,11 +64,6 @@ class BaseModel(object):
                 return {
                     "metadata": self.fetch_metadata(),
                     "dataset": dataset.to_dict('records')
-                }
-            elif 'as_is' in options and options['as_is']:
-                return {
-                    "metadata": self.fetch_metadata(),
-                    "dataset": dataset
                 }
         return f'{{ \
             "metadata": {json.dumps(self.fetch_metadata())}, \
