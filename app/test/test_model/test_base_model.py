@@ -279,3 +279,13 @@ class BaseModelTemplateTest(unittest.TestCase):
                 'col_5': { 0: "3.000", 1: "2.000", 2: "1.000", 3: "N/A" }
             })
         )
+    
+    def test_run_formatters(self):
+        ''' Test if formatters run correctly given the an object in the first-tier interpolation '''
+        self.assertEqual(
+            BaseModel.get_formatted_value(
+                { "base_object": "obj1", "named_prop": "field1", "format": "monetario" },
+                { "obj1": { "field1": 1.0 } }
+            ),
+            "<span>R$</span>1"
+        )
