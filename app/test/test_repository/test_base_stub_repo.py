@@ -58,10 +58,9 @@ class BaseRepositoryGeneralTest(unittest.TestCase):
         self.assertEqual(repo.replace_partition("min_part"), 'MIN({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}')
     
     def test_exclude_from_partition(self):
-        ''' Verifica a correta exclusão do particionamento de campos já
-            presentes em cláusula de group by '''
+        ''' Verifica a correta exclusão do particionamento de campos inexistentes no SELECT '''
         repo = StubRepositoryCustomPartitionMultipleValues()
-        self.assertEqual(repo.test_exclude_from_partition(['a'], ['b']), ['c'])
+        self.assertEqual(repo.exclude_from_partition(['a'], ['count']), 'a')
 
 class BaseRepositoryNamedQueryTest(unittest.TestCase):
     ''' Validates recovery of named query '''
