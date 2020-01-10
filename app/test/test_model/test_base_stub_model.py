@@ -137,4 +137,4 @@ class BaseModelTemplateTest(unittest.TestCase):
         self.assertEqual(
             model.replace_named_prop(rules, data_collection),
             { "fixed": "R$2,5" }
-        ) 
+        )
