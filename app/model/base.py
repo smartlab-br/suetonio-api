@@ -390,7 +390,7 @@ class BaseModel(object):
         if struct['function'] == 'slice':
             return base_object[fn_args[0]:fn_args[1]]
         else:
-            return base_object['function'](*tuple(fn_args))
+            return getattr(base_object, struct['function'])(*tuple(fn_args))
 
     def find_and_operate(self, operation, options=None):
         ''' Obtém um conjunto de dados e opera em cima deles '''
