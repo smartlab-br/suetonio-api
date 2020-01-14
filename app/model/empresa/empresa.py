@@ -39,7 +39,7 @@ class Empresa(BaseModel):
 
     def produce(self, cnpj_raiz):
         ''' Gera uma entrada na fila para ingestão de dados da empresa '''
-        (loading_entry, loading_entry_is_valid) = self.get_loading_entry(options['cnpj_raiz'], options)
+        (loading_entry, loading_entry_is_valid) = self.get_loading_entry(cnpj_raiz)
         if not loading_entry_is_valid:
             kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
             msg = bytes(cnpj_raiz, 'utf-8')
@@ -81,21 +81,12 @@ class Empresa(BaseModel):
     @staticmethod
     def assess_column_status(slot_list, columns_available, column):
         ''' Checks the status of a defined column '''
-        if 'column' in options:
-            if column in slot_list:
-                if column in columns_available.keys():
-                    if columns_available[column] == 'FAILED':
-                        return 'FAILED'
-                    elif columns_available[column] == 'INGESTING':
-                        return 'INGESTING'
-                else:
-                    return 'MISSING'
+        if column in slot_list:
+            if column in columns_available.keys():
+                return columns_available[column]
             else:
-                if column in columns_available.keys():
-                    if columns_available[column] == 'INGESTED':
-                        return 'DEPRECATED'
-                    else:
-                        return 'UNAVAILABLE'
-                else:
-                    return 'UNAVAILABLE'
-        return 'INGESTED'
+                return 'MISSING'
+        if (column in columns_available.keys() and
+            if columns_available[column] == 'INGESTED'):
+                return 'DEPRECATED'
+        return 'UNAVAILABLE'
