@@ -3,7 +3,7 @@ import requests
 import json
 from flask import current_app
 from impala.util import as_pandas
-from datasources import get_hive_connection, get_impala_connection, get_hbase_connection
+from datasources import get_hive_connection, get_impala_connection, get_hbase_connection, get_redis_pool
 
 #pylint: disable=R0903
 class BaseRepository(object):
@@ -657,3 +657,9 @@ class HBaseRepository(object):
                     result[column_parts[0]] = dataset
 
         return result
+
+class RedisRepository(BaseRepository):
+    ''' Generic class for redis repositories '''
+    def load_and_prepare(self):
+        ''' Prepara o DAO '''
+        self.dao = get_redis_pool()
