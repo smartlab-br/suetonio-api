@@ -27,7 +27,7 @@ class EmpresaRepository(HBaseRepository):
     def find_datasets(self, options):
         ''' Localiza um município pelo código do IBGE '''
         if 'cnpj_raiz' in options and options['cnpj_raiz'] is not None:
-            result = self.find_row('empresa', options['cnpj_raiz'], options['column_family'], options['column'])
+            result = self.find_row('empresa', options['cnpj_raiz'], options.get('column_family'), options.get('column'))
             metadata = {}
 
             for ds_key in result:

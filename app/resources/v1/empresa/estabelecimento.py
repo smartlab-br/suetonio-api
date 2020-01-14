@@ -66,7 +66,9 @@ class EstabelecimentoResource(BaseResource):
     })
     def get(self, cnpj):
         ''' Obtém todos os datasets da empresa '''
-        options = self.build_person_options(cnpj, request.args, mod='estabelecimento')
+        options = request.args.copy()
+        options['id_inv'] = cnpj
+        options = self.build_person_options(options, mod='estabelecimento')
         try:
             return self.__get_domain().find_datasets(options)
         except requests.exceptions.HTTPError as e:

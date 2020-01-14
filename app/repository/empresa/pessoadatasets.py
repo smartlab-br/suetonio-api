@@ -10,7 +10,7 @@ class PessoaDatasetsRepository(RedisRepository):
     
     def retrieve(self, id_pfpj, ds, pfpj = 'pj'):
         ''' Obtém o hashset de status de carregamento dco REDIS '''
-        return self.get_dao().hgetall(self.REDIS_BASE.format(pfpj, id_pfpj, ds))
+        return {key.decode(): value.decode() for (key, value) in self.get_dao().hgetall(self.REDIS_BASE.format(pfpj, id_pfpj, ds)).items()}
 
     def store_status(self, id_pfpj, ds, competencias, pfpj="pj"):
         ''' Armazena um registro de status enviado para o kafka '''
