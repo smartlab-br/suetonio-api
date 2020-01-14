@@ -10,7 +10,7 @@ from datetime import datetime
 #pylint: disable=R0903
 class Empresa(BaseModel):
     ''' Definição do repo '''
-    TOPICS = ['rais', 'rfb', 'sisben', 'catweb', 'auto', 'delphos', 'mni', 'caged', 'rfbsocios', 'rfbparticipacaosocietaria']
+    TOPICS = ['rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios', 'rfbparticipacaosocietaria']
 
     def __init__(self):
         ''' Construtor '''
@@ -39,12 +39,17 @@ class Empresa(BaseModel):
 
     def produce(self, cnpj_raiz):
         ''' Gera uma entrada na fila para ingestão de dados da empresa '''
-        (loading_entry, loading_entry_is_valid) = self.get_loading_entry(cnpj_raiz)
+        (loading_entry, loading_entry_is_valid, column_status) = self.get_loading_entry(cnpj_raiz)
         if not loading_entry_is_valid:
             kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
             msg = bytes(cnpj_raiz, 'utf-8')
             producer = KafkaProducer(bootstrap_servers=[kafka_server])
+            redis_dao = PessoaDatasetsRepository()
+            ds_dict = DatasetsRepository().DATASETS
             for t in self.TOPICS:
+                # First, updates status on REDIS
+                redis_dao.store_status(cnpj_raiz, t, ds_dict[t].split(','))
+                # Then publishes to Kafka
                 t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'
                 producer.send(t_name, msg)
             producer.close()
@@ -57,7 +62,7 @@ class Empresa(BaseModel):
         is_valid = True
         loading_entry = {}
         column_status = 'INGESTED'
-        for ds, slot_list in rules_dao.DATASOURCES:
+        for ds, slot_list in rules_dao.DATASETS.items():
             columns_available = loading_status_dao.retrieve(cnpj_raiz, ds)
 
             # Aquela entrada já existe no REDIS (foi carregada)?
