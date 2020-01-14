@@ -28,6 +28,17 @@ class ProductionConfig(object):
     data, stat = zk.get("/spai/suetonio-api/prod/hbase_port")
     HBASE_PORT = data.decode("utf-8")
 
+    data, stat = zk.get("/spai/suetonio-api/prod/redis_host")
+    REDIS_HOST = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/redis_port")
+    REDIS_PORT = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/redis_db")
+    REDIS_DB = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/redis_user")
+    REDIS_USER = data.decode("utf-8")
+    data, stat = zk.get("/spai/suetonio-api/prod/redis_pwd")
+    REDIS_PWD = data.decode("utf-8")
+
     data, stat = zk.get("/spai/suetonio-api/prod/kafka_host")
     KAFKA_HOST = data.decode("utf-8")
     data, stat = zk.get("/spai/suetonio-api/prod/kafka_port")
