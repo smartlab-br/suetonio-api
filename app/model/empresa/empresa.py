@@ -2,7 +2,7 @@
 from model.base import BaseModel
 from repository.empresa.empresa import EmpresaRepository
 from repository.empresa.pessoadatasets import PessoaDatasetsRepository
-from repository.empresa.datasets import DatasetsRepository
+from model.empresa.datasets import DatasetsRepository
 from kafka import KafkaProducer
 from flask import current_app
 from datetime import datetime
@@ -87,6 +87,6 @@ class Empresa(BaseModel):
             else:
                 return 'MISSING'
         if (column in columns_available.keys() and
-            if columns_available[column] == 'INGESTED'):
+            columns_available[column] == 'INGESTED'):
                 return 'DEPRECATED'
         return 'UNAVAILABLE'

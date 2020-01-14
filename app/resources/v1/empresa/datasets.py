@@ -41,8 +41,7 @@ class DatasetsResource(BaseResource):
     def post(self):
         ''' Regrava o dicionário padrão no REDIS '''
         try:
-            self.__get_domain().generate()
-            return 'Salvo', 201
+            return self.__get_domain().generate(), 201
         except TimeoutError:
             return "Falha na gravação do dicionário", 504
         except (AttributeError, KeyError, ValueError) as err:
