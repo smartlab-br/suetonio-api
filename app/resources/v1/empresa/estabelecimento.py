@@ -70,7 +70,12 @@ class EstabelecimentoResource(BaseResource):
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')
         try:
-            return self.__get_domain().find_datasets(options)
+            result = self.__get_domain().find_datasets(options)
+            if 'invalid' in result:
+                del result['invalid']
+                return result, 202
+            else:
+                return result
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
