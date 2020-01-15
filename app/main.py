@@ -12,6 +12,8 @@ from resources.v1.municipio import MunicipiosResource, MunicipioResource
 from resources.v1.empresa.empresa import EmpresaResource
 from resources.v1.empresa.estabelecimento import EstabelecimentoResource
 
+from resources.v1.empresa.datasets import DatasetsResource
+
 # Endpoints genéricos de temáticos
 from resources.v1.thematic import ThematicResource
 
@@ -38,6 +40,10 @@ def close_db_connection(error):
     if hasattr(g, 'impala_connection'):
         g.impala_connection.close()
         g.impala_connection = None
+    # Encerra a conexão com o redis
+    if hasattr(g, 'redis_pool'):
+        del g.redis_pool
+        g.redis_pool = None
     # # Encerra a conexão com o impala
     # if hasattr(g, 'hbase_connection'):
     #     g.hbase_connection.close()
@@ -47,6 +53,7 @@ CORS = CORS(application, resources={r"/*": {"origins": "*"}})
 api = Api(application, api_version='0.1', api_spec_url='/api/swagger') #pylint: disable=C0103
 
 api.add_resource(HCAlive, '/hcalive')
+api.add_resource(DatasetsResource, '/datasets')
 
 api.add_resource(MunicipiosResource, '/municipios')
 api.add_resource(MunicipioResource, '/municipio/<int:cd_municipio_ibge>')

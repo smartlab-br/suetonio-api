@@ -55,18 +55,18 @@ class BaseModel(object):
         if dataset is None:
             return None
         if options is not None:
-            if any(mod in options and options[mod] for mod in ['as_pandas', 'as_is']):
+            if 'as_pandas' in options and options['as_pandas']:
                 return {
-                    "metadata": self.fetch_metadata(),
+                    "metadata": self.fetch_metadata(options),
                     "dataset": dataset
                 }
             elif 'as_dict' in options and options['as_dict']:
                 return {
-                    "metadata": self.fetch_metadata(),
+                    "metadata": self.fetch_metadata(options),
                     "dataset": dataset.to_dict('records')
                 }
         return f'{{ \
-            "metadata": {json.dumps(self.fetch_metadata())}, \
+            "metadata": {json.dumps(self.fetch_metadata(options))}, \
             "dataset": {dataset.to_json(orient="records")} \
             }}'
 
@@ -74,7 +74,7 @@ class BaseModel(object):
         ''' Método abstrato para carregamento do repositório '''
         raise NotImplementedError("Models precisam implementar get_repo")
 
-    def fetch_metadata(self):
+    def fetch_metadata(self, options={}):
         ''' Método abstrato para carregamento do dataset '''
         return self.METADATA
 
@@ -205,7 +205,7 @@ class BaseModel(object):
                     }
                 }]
             elif isinstance(each_arg, list):
-                struct[each_arg_key] = [self.templates_to_fixed(each_item, data_collection) for each_item in each_arg] 
+                struct[each_arg_key] = [self.templates_to_fixed(each_item, data_collection) for each_item in each_arg]
             elif isinstance(each_arg, dict):
                 if 'template' in each_arg:
                     each_arg = self.replace_template_arg(each_arg, data_collection)
@@ -369,7 +369,7 @@ class BaseModel(object):
 
     @staticmethod
     def del_keywords(struct):
-        ''' Removes suetonio-only keywords from an object and returns it clean '''
+        ''' Removes datahub-only keywords from an object and returns it clean '''
         keywords = ['as_is', 'keep_template']
         for keyword in keywords:
             if keyword in struct:

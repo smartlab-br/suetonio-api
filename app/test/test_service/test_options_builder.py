@@ -52,9 +52,10 @@ class PersonOptionsBuilderTest(unittest.TestCase):
             "perspectiva": 'c',
             "only_meta": 'S',
             "reduzido": 'S',
+            "id_inv": '00000000'
         }
 
-        opts = QueryOptionsBuilder.build_person_options('00000000', r_args)
+        opts = QueryOptionsBuilder.build_person_options(r_args)
         
         self.assertEqual(
             opts,
@@ -78,9 +79,10 @@ class PersonOptionsBuilderTest(unittest.TestCase):
             "perspectiva": 'c',
             "only_meta": 'S',
             "reduzido": 'S',
+            "id_inv": '00000000000000'
         }
 
-        opts = QueryOptionsBuilder.build_person_options('00000000000000', r_args, mod='estabelecimento')
+        opts = QueryOptionsBuilder.build_person_options(r_args, mod='estabelecimento')
         
         self.assertEqual(
             opts,

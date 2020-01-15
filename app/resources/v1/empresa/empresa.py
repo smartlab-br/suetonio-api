@@ -73,9 +73,16 @@ class EmpresaResource(BaseResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém todos os datasets da empresa '''
-        options = self.build_person_options(cnpj_raiz, request.args)
+        options = request.args.copy()
+        options['id_inv'] = cnpj_raiz
+        options = self.build_person_options(options)
         try:
-            return self.__get_domain().find_datasets(options)
+            result = self.__get_domain().find_datasets(options)
+            if 'invalid' in result:
+                del result['invalid']
+                return result, 202
+            else:
+                return result
         except requests.exceptions.HTTPError as e:
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
