@@ -18,7 +18,7 @@ class Datasets(BaseModel):
 
     def retrieve(self):
         ''' Localiza o dicionário de datasources no REDIS '''
-        self.get_repo().retrieve()
+        return self.get_repo().retrieve()
 
     def generate(self):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''

@@ -19,12 +19,9 @@ class DatasetsRepository(RedisRepository):
 
     def retrieve(self):
         ''' Localiza o dicionário de datasources no REDIS '''
-        return self.get_dao().hgetall(self.REDIS_KEY)
+        return {key.decode(): value.decode() for (key, value) in self.get_dao().hgetall(self.REDIS_KEY).items()}
 
     def store(self):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''
-        dao = self.get_dao()
-        for key, value in self.DATASETS.items():
-            dao.hset(self.REDIS_KEY, key, value)
-        print('passei')
+        dao.hmset(self.REDIS_KEY, self.DATASETS)
         return self.DATASETS
