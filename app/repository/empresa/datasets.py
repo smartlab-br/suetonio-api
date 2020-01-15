@@ -23,5 +23,5 @@ class DatasetsRepository(RedisRepository):
 
     def store(self):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''
-        dao.hmset(self.REDIS_KEY, self.DATASETS)
+        self.get_dao().hmset(self.REDIS_KEY, self.DATASETS)
         return self.DATASETS
