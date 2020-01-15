@@ -33,6 +33,8 @@ class Empresa(BaseModel):
                 result['dataset'] = []
             else: 
                 result['dataset'] = dataset
+        else:
+            result['invalid'] = True
         if 'column' in options:
             result['status_competencia'] = column_status
         return result
