@@ -37,7 +37,7 @@ class QueryOptionsBuilder():
         return None
 
     @classmethod
-    def build_person_options(cls, id_inv, r_args, mod='empresa'):
+    def build_person_options(cls, r_args, mod='empresa'):
         ''' Constrói as opções da pesquisa '''
         options = {}
 
@@ -55,9 +55,9 @@ class QueryOptionsBuilder():
             options['reduzido'] = True
 
         if mod == 'estabelecimento':
-            options['cnpj_raiz'] = id_inv[:-6]
-            options['cnpj'] = id_inv
+            options['cnpj_raiz'] = r_args['id_inv'][:-6]
+            options['cnpj'] = r_args['id_inv']
         else:
-            options['cnpj_raiz'] = id_inv
+            options['cnpj_raiz'] = r_args['id_inv']
 
         return options

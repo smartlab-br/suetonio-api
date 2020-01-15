@@ -15,6 +15,12 @@ class DevelopmentConfig(object):
     HBASE_HOST = os.getenv('HBASE_HOST')
     HBASE_PORT = os.getenv('HBASE_PORT')
 
+    REDIS_HOST = os.getenv('REDIS_HOST')
+    REDIS_PORT = os.getenv('REDIS_PORT')
+    REDIS_DB = os.getenv('REDIS_DB')
+    REDIS_USER = os.getenv('REDIS_USER')
+    REDIS_PWD = os.getenv('REDIS_PWD')
+
     KAFKA_HOST = os.getenv('KAFKA_HOST')
     KAFKA_PORT = os.getenv('KAFKA_PORT')
     KAFKA_SCHEMA = os.getenv('KAFKA_SCHEMA')

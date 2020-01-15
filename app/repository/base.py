@@ -3,7 +3,7 @@ import requests
 import json
 from flask import current_app
 from impala.util import as_pandas
-from datasources import get_hive_connection, get_impala_connection, get_hbase_connection
+from datasources import get_hive_connection, get_impala_connection, get_hbase_connection, get_redis_pool
 
 #pylint: disable=R0903
 class BaseRepository(object):
@@ -240,15 +240,7 @@ class BaseRepository(object):
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
-        main_join = self.ON_JOIN[table_name]
-        if join_clauses is None:
-            return main_join
-        # COMPOSIÇÃO DO JOIN COM FILTRO DESATIVADO
-        # joined_filters = self.build_filter_string(join_clauses, table_name, True)
-        # if joined_filters is None or joined_filters == '':
-        #     return main_join
-        # return main_join + ' AND ' + joined_filters
-        return main_join
+        pass
 
     def get_join_suffix(self, table_name):
         ''' Obtém uma string de sufixo de campo de tabela juntada '''
@@ -665,3 +657,9 @@ class HBaseRepository(object):
                     result[column_parts[0]] = dataset
 
         return result
+
+class RedisRepository(BaseRepository):
+    ''' Generic class for redis repositories '''
+    def load_and_prepare(self):
+        ''' Prepara o DAO '''
+        self.dao = get_redis_pool()
