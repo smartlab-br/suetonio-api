@@ -62,6 +62,7 @@ class Empresa(BaseModel):
         is_valid = True
         loading_entry = {}
         column_status = 'INGESTED'
+        column_status_specific = None
         for ds, slot_list in rules_dao.DATASETS.items():
             columns_available = loading_status_dao.retrieve(cnpj_raiz, ds)
 
@@ -80,6 +81,11 @@ class Empresa(BaseModel):
                     columns_available,
                     options['column']
                 )
+                if options['column_family'] == ds:
+                    column_status_specific = column_status
+        
+        # Overrides if there's a specific column status
+        column_status = column_status_specific
         
         return (loading_entry, is_valid, column_status)
 
