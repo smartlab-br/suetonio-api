@@ -10,7 +10,7 @@ class DatasetsRepository(RedisRepository):
         'rais': '2017',
         'rfb': '2018',
         'sisben': '2018',
-        'catweb': '2018',
+        'catweb': '2017,2018',
         'auto': '2018',
         'caged': '2019',
         'rfbsocios': '2018',
