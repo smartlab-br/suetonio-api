@@ -73,7 +73,7 @@ class Empresa(BaseModel):
             # A entrada tem menos de 1 mês?
             if (columns_available is None or
                 any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
-                abs((datetime.now() - datetime.strptime(columns_available['when'], "%Y-%m-%d")).days) > 30):
+                ('when' in columns_available and (datetime.strptime(columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
                 is_valid = False
             loading_entry[ds] = columns_available
 
