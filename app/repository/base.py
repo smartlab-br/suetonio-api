@@ -1,8 +1,9 @@
 ''' Repository genérico '''
 import requests
+import json
 from flask import current_app
 from impala.util import as_pandas
-from datasources import get_hive_connection, get_impala_connection, get_hbase_connection
+from datasources import get_hive_connection, get_impala_connection, get_hbase_connection, get_redis_pool
 
 #pylint: disable=R0903
 class BaseRepository(object):
@@ -235,19 +236,11 @@ class BaseRepository(object):
         tbl_dict = self.TABLE_NAMES
         if table_name in tbl_dict:
             return tbl_dict[table_name]
-        return table_name
+        raise KeyError("Invalid theme")
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
-        main_join = self.ON_JOIN[table_name]
-        if join_clauses is None:
-            return main_join
-        # COMPOSIÇÃO DO JOIN COM FILTRO DESATIVADO
-        # joined_filters = self.build_filter_string(join_clauses, table_name, True)
-        # if joined_filters is None or joined_filters == '':
-        #     return main_join
-        # return main_join + ' AND ' + joined_filters
-        return main_join
+        pass
 
     def get_join_suffix(self, table_name):
         ''' Obtém uma string de sufixo de campo de tabela juntada '''
@@ -285,7 +278,7 @@ class BaseRepository(object):
 
     def build_std_calcs(self, options):
         '''Constrói campos calculados de valor, como min, max e normalizado '''
-        if self.VAL_FIELD is None or self.DEFAULT_PARTITIONING is None:
+        if self.VAL_FIELD is None or self.get_default_partitioning(options) is None:
             return ''
 
         # Pega o valor passado ou padrão, para montar a query
@@ -295,8 +288,8 @@ class BaseRepository(object):
 
         # Pega o valor do particionamento
         if not self.check_params(options, ['partition']):
-            if self.DEFAULT_PARTITIONING != '':
-                res_partition = self.DEFAULT_PARTITIONING
+            if self.get_default_partitioning(options) != '':
+                res_partition = self.get_default_partitioning(options)
             else:
                 res_partition = "'1'"
         else:
@@ -336,7 +329,7 @@ class BaseRepository(object):
                 )
             # Resumes identification of calc
             arr_calcs.append(
-                self.replace_partition(calc).format(
+                self.replace_partition(calc, options).format(
                     val_field=val_field,
                     partition=str_res_partition,
                     calc=calc
@@ -344,21 +337,24 @@ class BaseRepository(object):
             )
         return ', '.join(arr_calcs)
 
-    def replace_partition(self, qry_part):
+    def replace_partition(self, qry_part, options={}):
         ''' Changes OVER clause when there's no partitioning '''
-        if self.DEFAULT_PARTITIONING == '':
+        if self.get_default_partitioning(options) == '':
             return self.CALCS_DICT[qry_part].replace("PARTITION BY {partition}", "")
         return self.CALCS_DICT[qry_part]
 
-    def exclude_from_partition(self, categorias, agregacoes):
+    def exclude_from_partition(self, categorias, agregacoes, options={}):
         ''' Remove do partition as categorias não geradas pela agregação '''
-        partitions = self.DEFAULT_PARTITIONING.split(", ")
-        groups = self.build_grouping_string(categorias, agregacoes).split(", ")
+        partitions = self.get_default_partitioning(options).split(", ")
+        groups = self.build_grouping_string(categorias, agregacoes).replace('GROUP BY ', '').split(", ")
         result = []
         for partition in partitions:
             if partition in groups:
                 result.append(partition)
         return ", ".join(result)
+    
+    def get_default_partitioning(self, options):
+        return self.DEFAULT_PARTITIONING
 
     def combine_val_aggr(self, valor, agregacao, suffix=None):
         ''' Combina valores e agregções para construir a string correta '''
@@ -617,17 +613,10 @@ class HBaseRepository(object):
 
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
-        # self.dao = get_hbase_connection()
+        pass
 
-    def find_row(self, table, key, column_family, column):
-        ''' Obtém dataset de acordo com os parâmetros informados '''
-        import json
-        import base64
-        # import zlib
-        import gzip
-        from pandas.io.json import json_normalize
-
-        # Gets rows based on table and key values
+    def fetch_data(self, table, key, column_family, column):
+        ''' Gets data from HBase instance '''
         url = "http://" + current_app.config["HBASE_HOST"] + ":" + current_app.config["HBASE_PORT"] + "/" + table + "/" + key 
         if column_family is not None:
             url = url + "/" + str(column_family)
@@ -639,12 +628,17 @@ class HBaseRepository(object):
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
 
+        return json.loads(response.content)['Row']
+
+    def find_row(self, table, key, column_family, column):
+        ''' Obtém dataset de acordo com os parâmetros informados '''
+        import base64
+        import gzip
+        from pandas.io.json import json_normalize
+
         # Makes sure the returning data will be a JSON
         result = {}
-        row = json.loads(response.content)['Row']
-        for row_key in row:
-            analysis_unit = base64.urlsafe_b64decode(row_key['key'])
-
+        for row_key in self.fetch_data(table, key, column_family, column):
             for col in row_key['Cell']:
                 colfam = base64.urlsafe_b64decode(col['column'])
                 column_parts = colfam.decode('UTF-8').split(':')
@@ -663,3 +657,9 @@ class HBaseRepository(object):
                     result[column_parts[0]] = dataset
 
         return result
+
+class RedisRepository(BaseRepository):
+    ''' Generic class for redis repositories '''
+    def load_and_prepare(self):
+        ''' Prepara o DAO '''
+        self.dao = get_redis_pool()

@@ -27,6 +27,17 @@ def get_impala_connection():
         )
     return g.impala_connection
 
+def get_redis_pool():
+    ''' Gerencia a conexão com o redis '''
+    import redis
+    if not hasattr(g, 'redis_pool'):
+        g.redis_pool = redis.Redis(
+            host=current_app.config['REDIS_HOST'],
+            port=current_app.config['REDIS_PORT'], # 6379,
+            db=current_app.config['REDIS_DB'] # 0
+        )
+    return g.redis_pool
+
 # Inativo, pois optamos por conectar via REST
 def get_hbase_connection():
     ''' Gerencia a conexão com o hbase '''
