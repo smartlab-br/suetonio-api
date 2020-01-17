@@ -11,7 +11,7 @@ class EmpresaRepository(HBaseRepository):
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
-        'renavam': 'proprietario_cpfcnpj'
+        'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cnpj',
         'sisben': 'nu_cnpj'
     } # Dados que possuem nomes diferentes para a coluna de cnpj
