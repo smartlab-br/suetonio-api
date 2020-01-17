@@ -14,7 +14,9 @@ class DatasetsRepository(RedisRepository):
         'auto': '2018',
         'caged': '2019',
         'rfbsocios': '2018',
-        'rfbparticipacaosocietaria': '2018'
+        'rfbparticipacaosocietaria': '2018',
+        'renavam': '2018',
+        'aeronaves': '2018'
     }
 
     def retrieve(self):
