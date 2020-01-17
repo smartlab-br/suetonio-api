@@ -19,10 +19,10 @@ class EmpresaRepository(HBaseRepository):
         'aeronaves': 'proprietario_cpfcnpj',
         'catweb': 'nu_nit',
         'rais': 'nu_cpf',
-        'renavam': 'proprietario_cpfcnpj'
+        'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cpf_responsavel',
         'rfbsocios': 'cnpj_cpf_socio',
-        'rfbparticipacaosocietaria': 'cnpj_cpf_socio',
+        'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
     } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
     PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
         'catweb': 'origem'
