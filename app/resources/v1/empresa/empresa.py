@@ -76,19 +76,13 @@ class EmpresaResource(BaseResource):
         options = request.args.copy()
         options['id_inv'] = cnpj_raiz
         options = self.build_person_options(options)
-        try:
-            result = self.__get_domain().find_datasets(options)
-            if 'invalid' in result:
-                del result['invalid']
-                return result, 202
-            else:
-                return result
-        except requests.exceptions.HTTPError as e:
-            # Whoops it wasn't a 200
-            if e.response.status_code == 404:
-                return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 404
-            else:
-                return "Error fetching data", e.response.status_code
+        
+        result = self.__get_domain().find_datasets(options)
+        if 'invalid' in result:
+            del result['invalid']
+            return result, 202
+        else:
+            return result
 
     @swagger.doc({
         'tags':['empresa'],

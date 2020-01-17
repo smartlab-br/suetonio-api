@@ -69,19 +69,13 @@ class EstabelecimentoResource(BaseResource):
         options = request.args.copy()
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')
-        try:
-            result = self.__get_domain().find_datasets(options)
-            if 'invalid' in result:
-                del result['invalid']
-                return result, 202
-            else:
-                return result
-        except requests.exceptions.HTTPError as e:
-            # Whoops it wasn't a 200
-            if e.response.status_code == 404:
-                return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 204
-            else:
-                return "Error fetching data", e.response.status_code
+        
+        result = self.__get_domain().find_datasets(options)
+        if 'invalid' in result:
+            del result['invalid']
+            return result, 202
+        else:
+            return result
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''

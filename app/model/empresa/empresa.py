@@ -26,14 +26,16 @@ class Empresa(BaseModel):
         ''' Localiza um todos os datasets de uma empresa pelo CNPJ Raiz '''
         (loading_entry, loading_entry_is_valid, column_status) = self.get_loading_entry(options['cnpj_raiz'], options)
         result = {'status': loading_entry}
-        if loading_entry_is_valid:
+        try:
             (dataset, metadata) = self.get_repo().find_datasets(options)
             result['metadata'] = metadata
             if 'only_meta' in options and options['only_meta']:
                 result['dataset'] = []
             else: 
                 result['dataset'] = dataset
-        else:
+        except requests.exceptions.HTTPError as e:
+            loading_entry_is_valid = False
+        if not loading_entry_is_valid:
             result['invalid'] = True
         if 'column' in options:
             result['status_competencia'] = column_status
