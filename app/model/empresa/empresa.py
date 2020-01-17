@@ -53,6 +53,8 @@ class Empresa(BaseModel):
                 redis_dao.store_status(cnpj_raiz, t, ds_dict[t].split(','))
                 # Then publishes to Kafka
                 t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'
+                print(t_name)
+                print(msg)
                 producer.send(t_name, msg)
             producer.close()
         return {'status': loading_entry}
