@@ -6,6 +6,7 @@ from model.empresa.datasets import DatasetsRepository
 from kafka import KafkaProducer
 from flask import current_app
 from datetime import datetime
+import requests
 
 #pylint: disable=R0903
 class Empresa(BaseModel):
@@ -33,7 +34,7 @@ class Empresa(BaseModel):
                 result['dataset'] = []
             else: 
                 result['dataset'] = dataset
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.HTTPError:
             loading_entry_is_valid = False
         if not loading_entry_is_valid:
             result['invalid'] = True
@@ -87,7 +88,8 @@ class Empresa(BaseModel):
                     column_status_specific = column_status
         
         # Overrides if there's a specific column status
-        column_status = column_status_specific
+        if column_status_specific is not None:
+            column_status = column_status_specific
         
         return (loading_entry, is_valid, column_status)
 
