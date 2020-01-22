@@ -26,7 +26,7 @@ class EmpresaRepository(HBaseRepository):
     } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
     PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
         'catweb': 'origem'
-    } 
+    }
     SIMPLE_COLUMNS = {}
 
     def find_datasets(self, options):
@@ -36,6 +36,7 @@ class EmpresaRepository(HBaseRepository):
             metadata = {}
 
             for ds_key in result:
+                result[ds_key]['col_compet'] = result[ds_key]["col_compet"]
                 col_cnpj_name = 'cnpj'
                 if ds_key in self.CNPJ_COLUMNS:
                     col_cnpj_name = self.CNPJ_COLUMNS[ds_key]
@@ -85,26 +86,31 @@ class EmpresaRepository(HBaseRepository):
 
                         # Captura de metadados
                         metadata[ds_key] = {}
-                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json())
+                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="records"))
 
                         stats_estab = result[ds_key].groupby(col_cnpj_name).describe(include='all')
                         stats_estab.columns = ["_".join(col).strip() for col in stats_estab.columns.values]
-                        metadata[ds_key]['stats_estab'] = json.loads(stats_estab.reset_index().to_json())
+                        metadata[ds_key]['stats_estab'] = json.loads(stats_estab.reset_index().to_json(orient="records"))
+
+                        stats_compet = result[ds_key].groupby('col_compet').describe(include='all')
+                        stats_compet.columns = ["_".join(col).strip() for col in stats_compet.columns.values]
+                        metadata[ds_key]['stats_compet'] = json.loads(stats_compet.reset_index().to_json(orient="records"))
+
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(col_pf_name).describe(include='all')
                         stats_estab_compet = result[ds_key].groupby(['col_compet', col_cnpj_name]).describe(include='all')
                         stats_estab_compet.columns = ["_".join(col).strip() for col in stats_estab_compet.columns.values]
-                        metadata[ds_key]['stats_estab_compet'] = json.loads(stats_estab_compet.reset_index().to_json())
+                        metadata[ds_key]['stats_estab_compet'] = json.loads(stats_estab_compet.reset_index().to_json(orient="records"))
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf_compet'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(['col_compet', col_cnpj_name]).describe(include='all')
                     else: # Empty after filters
                         # Captura de metadados
                         metadata[ds_key] = {}
-                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json())    
+                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="records"))    
                 else:
                     # Captura de metadados
                     metadata[ds_key] = {}
-                    metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json())
+                    metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="records"))
 
                 # Conversão dos datasets em json
                 result[ds_key] = json.loads(result[ds_key].to_json(orient="records"))
