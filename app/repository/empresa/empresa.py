@@ -89,18 +89,22 @@ class EmpresaRepository(HBaseRepository):
 
                         stats_estab = result[ds_key].groupby(col_cnpj_name).describe(include='all')
                         stats_estab.columns = ["_".join(col).strip() for col in stats_estab.columns.values]
-                        metadata[ds_key]['stats_estab'] = json.loads(stats_estab.reset_index().to_json(orient="index"))
+                        metadata[ds_key]['stats_estab'] = json.loads(stats_estab.to_json(orient="index"))
 
                         stats_compet = result[ds_key].groupby('col_compet').describe(include='all')
                         stats_compet.columns = ["_".join(col).strip() for col in stats_compet.columns.values]
-                        metadata[ds_key]['stats_compet'] = json.loads(stats_compet.reset_index().to_json(orient="index"))
+                        metadata[ds_key]['stats_compet'] = json.loads(stats_compet.to_json(orient="index"))
 
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(col_pf_name).describe(include='all')
 
                         stats_estab_compet = result[ds_key].groupby(['col_compet', col_cnpj_name]).describe(include='all')
                         stats_estab_compet.columns = ["_".join(col).strip() for col in stats_estab_compet.columns.values]
-                        metadata[ds_key]['stats_estab_compet'] = json.loads(stats_estab_compet.reset_index().to_json(orient="index"))
+                        stats_estab_compet = stats_estab_compet.reset_index()
+                        stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + '_' + stats_estab_compet[col_cnpj_name].apply(str)
+                        stats_estab_compet = stats_estab_compet.set_index('idx')
+                        print(stats_estab_compet)
+                        metadata[ds_key]['stats_estab_compet'] = json.loads(stats_estab_compet.to_json(orient="index"))
 
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf_compet'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(['col_compet', col_cnpj_name]).describe(include='all')
