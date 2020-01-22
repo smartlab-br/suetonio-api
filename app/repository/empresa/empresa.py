@@ -7,17 +7,22 @@ class EmpresaRepository(HBaseRepository):
     ''' Definição do repo '''
     TABLE = 'sue'
     CNPJ_COLUMNS = {
+        'aeronaves': 'proprietario_cpfcnpj',
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
-        'rfb': 'nu_cnpj'
+        'renavam': 'proprietario_cpfcnpj',
+        'rfb': 'nu_cnpj',
+        'sisben': 'nu_cnpj'
     } # Dados que possuem nomes diferentes para a coluna de cnpj
     PF_COLUMNS = {
+        'aeronaves': 'proprietario_cpfcnpj',
         'catweb': 'nu_nit',
         'rais': 'nu_cpf',
+        'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cpf_responsavel',
         'rfbsocios': 'cnpj_cpf_socio',
-        'rfbparticipacaosocietaria': 'cnpj_cpf_socio',
+        'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
     } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
     PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
         'catweb': 'origem'

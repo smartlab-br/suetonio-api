@@ -23,6 +23,7 @@ pipeline {
             }
             environment {
                 PYTHONPATH = "${pwd()}/app:$PYTHONPATH"
+                PYTHONDONTWRITEBYTECODE = 1
             }
             steps {
                 executeUnitTests()

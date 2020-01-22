@@ -6,11 +6,12 @@ from model.empresa.datasets import DatasetsRepository
 from kafka import KafkaProducer
 from flask import current_app
 from datetime import datetime
+import requests
 
 #pylint: disable=R0903
 class Empresa(BaseModel):
     ''' Definição do repo '''
-    TOPICS = ['rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios', 'rfbparticipacaosocietaria']
+    TOPICS = ['rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios', 'rfbparticipacaosocietaria', 'aeronaves', 'renavam']
 
     def __init__(self):
         ''' Construtor '''
@@ -26,14 +27,16 @@ class Empresa(BaseModel):
         ''' Localiza um todos os datasets de uma empresa pelo CNPJ Raiz '''
         (loading_entry, loading_entry_is_valid, column_status) = self.get_loading_entry(options['cnpj_raiz'], options)
         result = {'status': loading_entry}
-        if loading_entry_is_valid:
+        try:
             (dataset, metadata) = self.get_repo().find_datasets(options)
             result['metadata'] = metadata
             if 'only_meta' in options and options['only_meta']:
                 result['dataset'] = []
             else: 
                 result['dataset'] = dataset
-        else:
+        except requests.exceptions.HTTPError:
+            loading_entry_is_valid = False
+        if not loading_entry_is_valid:
             result['invalid'] = True
         if 'column' in options:
             result['status_competencia'] = column_status
@@ -42,20 +45,18 @@ class Empresa(BaseModel):
     def produce(self, cnpj_raiz):
         ''' Gera uma entrada na fila para ingestão de dados da empresa '''
         (loading_entry, loading_entry_is_valid, column_status) = self.get_loading_entry(cnpj_raiz)
-        if not loading_entry_is_valid:
-            kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
-            msg = bytes(cnpj_raiz, 'utf-8')
-            producer = KafkaProducer(bootstrap_servers=[kafka_server])
-            redis_dao = PessoaDatasetsRepository()
-            ds_dict = DatasetsRepository().DATASETS
-            for t in self.TOPICS:
-                # First, updates status on REDIS
-                redis_dao.store_status(cnpj_raiz, t, ds_dict[t].split(','))
-                # Then publishes to Kafka
-                t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'
-                producer.send(t_name, msg)
-            producer.close()
-        return {'status': loading_entry}
+        kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
+        msg = bytes(cnpj_raiz, 'utf-8')
+        producer = KafkaProducer(bootstrap_servers=[kafka_server])
+        redis_dao = PessoaDatasetsRepository()
+        ds_dict = DatasetsRepository().DATASETS
+        for t in self.TOPICS:
+            # First, updates status on REDIS
+            redis_dao.store_status(cnpj_raiz, t, ds_dict[t].split(','))
+            # Then publishes to Kafka
+            t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{t}'
+            producer.send(t_name, msg)
+        producer.close()
 
     def get_loading_entry(self, cnpj_raiz, options={}):
         ''' Verifica se há uma entrada ainda válida para ingestão de dados da empresa '''
@@ -73,7 +74,7 @@ class Empresa(BaseModel):
             # A entrada tem menos de 1 mês?
             if (columns_available is None or
                 any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
-                abs((datetime.now() - datetime.strptime(columns_available['when'], "%Y-%m-%d")).days) > 30):
+                ('when' in columns_available and (datetime.strptime(columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
                 is_valid = False
             loading_entry[ds] = columns_available
 
@@ -87,7 +88,8 @@ class Empresa(BaseModel):
                     column_status_specific = column_status
         
         # Overrides if there's a specific column status
-        column_status = column_status_specific
+        if column_status_specific is not None:
+            column_status = column_status_specific
         
         return (loading_entry, is_valid, column_status)
 
