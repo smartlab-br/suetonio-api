@@ -14,6 +14,8 @@ from resources.v1.empresa.estabelecimento import EstabelecimentoResource
 
 from resources.v1.empresa.datasets import DatasetsResource
 
+from resources.v1.empresa.report import ReportResource
+
 # Endpoints genéricos de temáticos
 from resources.v1.thematic import ThematicResource
 
@@ -54,6 +56,7 @@ api = Api(application, api_version='0.1', api_spec_url='/api/swagger') #pylint: 
 
 api.add_resource(HCAlive, '/hcalive')
 api.add_resource(DatasetsResource, '/datasets')
+api.add_resource(ReportResource, '/report/<string:cnpj_raiz>')
 
 api.add_resource(MunicipiosResource, '/municipios')
 api.add_resource(MunicipioResource, '/municipio/<int:cd_municipio_ibge>')
