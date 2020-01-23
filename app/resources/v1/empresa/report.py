@@ -38,7 +38,8 @@ class ReportResource(BaseResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém o report '''
-        return self.__get_domain().find_report(cnpj_raiz, request.args['processo'])
+        content = self.__get_domain().find_report(cnpj_raiz, request.args['processo'])
+        return Response(content, mimetype='text/html')
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
