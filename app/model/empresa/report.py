@@ -17,6 +17,6 @@ class Report(BaseModel):
             self.repo = ReportRepository()
         return self.repo
 
-    def find_report(self, cnpj_raiz):
+    def find_report(self, cnpj_raiz, processo):
         ''' Localiza report pelo CNPJ Raiz '''
-        return self.get_repo().find_report()
+        return self.get_repo().find_report(cnpj, processo)

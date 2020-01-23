@@ -22,6 +22,13 @@ class ReportResource(BaseResource):
                 "type": 'string',
                 "in": "path"
             },
+            {
+                "name": "processo",
+                "description": "Número do processo",
+                "required": True,
+                "type": 'string',
+                "in": "query"
+            },
         ],
         'responses': {
             '200': {
@@ -31,7 +38,7 @@ class ReportResource(BaseResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém o report '''
-        return self.__get_domain().find_report(cnpj_raiz)
+        return self.__get_domain().find_report(cnpj_raiz, request.args['processo'])
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''

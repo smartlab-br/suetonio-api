@@ -7,6 +7,6 @@ class ReportRepository(RedisRepository):
     ''' Definição do repo '''
     REDIS_KEY = 'rmd:{}:{}'
     
-    def find_report(self, cnpj):
+    def find_report(self, cnpj_raiz, processo):
         ''' Localiza o report no REDIS '''
-        return self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz))
+        return self.get_dao().get(self.REDIS_KEY.format(processo, cnpj_raiz))
