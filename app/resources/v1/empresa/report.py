@@ -1,6 +1,6 @@
 ''' Controller para fornecer dados das organizações de assistência social '''
 import requests
-from flask import request
+from flask import request, Response
 from flask_restful_swagger_2 import swagger
 from resources.base import BaseResource
 from model.empresa.report import Report
