@@ -17,6 +17,10 @@ class Report(BaseModel):
             self.repo = ReportRepository()
         return self.repo
 
-    def find_report(self, cnpj_raiz, processo):
+    def find_report(self, cnpj_raiz):
         ''' Localiza report pelo CNPJ Raiz '''
-        return self.get_repo().find_report(cnpj_raiz, processo)
+        return self.get_repo().find_report(cnpj_raiz)
+    
+    def generate(self, cnpj_raiz):
+        ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''
+        self.get_repo().store(cnpj_raiz)
