@@ -21,14 +21,7 @@ class ReportResource(BaseResource):
                 "required": True,
                 "type": 'string',
                 "in": "path"
-            },
-            {
-                "name": "processo",
-                "description": "Número do processo",
-                "required": True,
-                "type": 'string',
-                "in": "query"
-            },
+            }
         ],
         'responses': {
             '200': {
@@ -38,8 +31,33 @@ class ReportResource(BaseResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém o report '''
-        content = self.__get_domain().find_report(cnpj_raiz, request.args['processo'])
+        content = self.__get_domain().find_report(cnpj_raiz)
         return Response(content, mimetype='text/html')
+
+    @swagger.doc({
+        'tags':['report'],
+        'description':'Envia CNPJ RAIZ para a fila de processamento do report.',
+        'parameters':[
+            {
+                "name": "cnpj_raiz",
+                "description": "CNPJ Raiz da empresa consultada",
+                "required": True,
+                "type": 'string',
+                "in": "path"
+            }
+        ],
+        'responses': {
+            '201': {'description': 'Report'}
+        }
+    })
+    def post(self, cnpj_raiz):
+        ''' Envia para a fila do Kafka '''
+        try:
+            return self.__get_domain().generate(cnpj_raiz), 201
+        except TimeoutError:
+            return "Falha na gravação do dicionário", 504
+        except (AttributeError, KeyError, ValueError) as err:
+            return str(err), 500
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
