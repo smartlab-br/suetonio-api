@@ -1,6 +1,8 @@
+''' Configuration loader for development environment '''
 import os
 
-class DevelopmentConfig(object):
+class DevelopmentConfig():
+    ''' Configuration handler '''
     HIVE_HOST = os.getenv('HIVE_HOST')
     HIVE_PORT = os.getenv('HIVE_PORT')
     HIVE_USER = os.getenv('HIVE_USER')

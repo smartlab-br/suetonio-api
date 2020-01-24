@@ -1,14 +1,13 @@
 ''' Repository para recuperar informações de uma empresa '''
 from datetime import datetime
 from repository.base import RedisRepository
-import json
 
 #pylint: disable=R0903
 class PessoaDatasetsRepository(RedisRepository):
     ''' Definição do repo '''
     REDIS_BASE = 'rx:{}:{}:{}'
-    
-    def retrieve(self, id_pfpj, ds, pfpj = 'pj'):
+
+    def retrieve(self, id_pfpj, ds, pfpj='pj'):
         ''' Obtém o hashset de status de carregamento dco REDIS '''
         return {key.decode(): value.decode() for (key, value) in self.get_dao().hgetall(self.REDIS_BASE.format(pfpj, id_pfpj, ds)).items()}
 

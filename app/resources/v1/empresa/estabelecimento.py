@@ -1,7 +1,6 @@
 ''' Controller para fornecer dados das organizações de assistência social '''
-import requests
-from flask import request
 from flask_restful_swagger_2 import swagger
+from flask import request
 from resources.base import BaseResource
 from model.empresa.empresa import Empresa
 
@@ -69,13 +68,12 @@ class EstabelecimentoResource(BaseResource):
         options = request.args.copy()
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')
-        
+
         result = self.__get_domain().find_datasets(options)
         if 'invalid' in result:
             del result['invalid']
             return result, 202
-        else:
-            return result
+        return result
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''

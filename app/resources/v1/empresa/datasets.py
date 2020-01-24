@@ -1,6 +1,5 @@
 ''' Controller para fornecer dados das organizações de assistência social '''
 import requests
-from flask import request
 from flask_restful_swagger_2 import swagger
 from resources.base import BaseResource
 from model.empresa.datasets import Datasets
@@ -28,8 +27,7 @@ class DatasetsResource(BaseResource):
             # Whoops it wasn't a 200
             if e.response.status_code == 404:
                 return "Nenhuma análise feita ou última análise expirada. Solicite nova análise.", 404
-            else:
-                return "Error fetching data", e.response.status_code
+            return "Error fetching data", e.response.status_code
 
     @swagger.doc({
         'tags':['dataset'],

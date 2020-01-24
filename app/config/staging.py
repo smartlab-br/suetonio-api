@@ -1,9 +1,9 @@
-from kazoo.client import KazooClient
+''' Configuration loader for staging environment '''
 import os
+from kazoo.client import KazooClient
 
-
-class StagingConfig(object):
-
+class StagingConfig():
+    ''' Configuration handler '''
     zk = KazooClient(hosts=os.getenv('ZOOKEEPER_HOST') + ':' + os.getenv('ZOOKEEPER_PORT'))
     zk.start()
     data, stat = zk.get("/spai/suetonio-api/staging/hive_host")
@@ -47,10 +47,10 @@ class StagingConfig(object):
     KAFKA_SCHEMA = data.decode("utf-8")
     data, stat = zk.get("/spai/suetonio-api/staging/kafka_topic_prefix")
     KAFKA_TOPIC_PREFIX = data.decode("utf-8")
-    
+
     data, stat = zk.get("/spai/suetonio-api/staging/git_viewconf_url")
     GIT_VIEWCONF_BASE_URL = data.decode("utf-8")
-    
+
     zk.stop()
     zk = None
     data = None

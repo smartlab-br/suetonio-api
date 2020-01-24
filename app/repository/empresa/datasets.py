@@ -1,6 +1,5 @@
 ''' Repository para recuperar informações de uma empresa '''
 from repository.base import RedisRepository
-import json
 
 #pylint: disable=R0903
 class DatasetsRepository(RedisRepository):

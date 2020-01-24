@@ -1,12 +1,12 @@
 ''' Repository para recuperar informações da CEE '''
+import requests
+from datetime import datetime
+from kafka import KafkaProducer
 from model.base import BaseModel
 from repository.empresa.empresa import EmpresaRepository
 from repository.empresa.pessoadatasets import PessoaDatasetsRepository
 from model.empresa.datasets import DatasetsRepository
-from kafka import KafkaProducer
 from flask import current_app
-from datetime import datetime
-import requests
 
 #pylint: disable=R0903
 class Empresa(BaseModel):
@@ -32,7 +32,7 @@ class Empresa(BaseModel):
             result['metadata'] = metadata
             if 'only_meta' in options and options['only_meta']:
                 result['dataset'] = []
-            else: 
+            else:
                 result['dataset'] = dataset
         except requests.exceptions.HTTPError:
             loading_entry_is_valid = False
@@ -73,8 +73,8 @@ class Empresa(BaseModel):
             # A entrada é compatível com o rol de datasources?
             # A entrada tem menos de 1 mês?
             if (columns_available is None or
-                any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
-                ('when' in columns_available and (datetime.strptime(columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
+                    any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
+                    ('when' in columns_available and (datetime.strptime(columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
                 is_valid = False
             loading_entry[ds] = columns_available
 
@@ -86,11 +86,11 @@ class Empresa(BaseModel):
                 )
                 if options['column_family'] == ds:
                     column_status_specific = column_status
-        
+
         # Overrides if there's a specific column status
         if column_status_specific is not None:
             column_status = column_status_specific
-        
+
         return (loading_entry, is_valid, column_status)
 
     @staticmethod
@@ -99,9 +99,8 @@ class Empresa(BaseModel):
         if column in slot_list:
             if column in columns_available.keys():
                 return columns_available[column]
-            else:
-                return 'MISSING'
+            return 'MISSING'
         if (column in columns_available.keys() and
-            columns_available[column] == 'INGESTED'):
-                return 'DEPRECATED'
+                columns_available[column] == 'INGESTED'):
+            return 'DEPRECATED'
         return 'UNAVAILABLE'

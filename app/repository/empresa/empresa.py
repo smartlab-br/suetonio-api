@@ -1,6 +1,6 @@
 ''' Repository para recuperar informações de uma empresa '''
-from repository.base import HBaseRepository
 import json
+from repository.base import HBaseRepository
 
 #pylint: disable=R0903
 class EmpresaRepository(HBaseRepository):
@@ -45,9 +45,9 @@ class EmpresaRepository(HBaseRepository):
 
                 if not result[ds_key].empty:
                     # Filtrar cnpj e id_pf nos datasets pandas
-                    if ('cnpj' in options and options['cnpj'] is not None and 
-                        'id_pf' in options and options['id_pf'] is not None and 
-                        col_pf_name is not None):
+                    if ('cnpj' in options and options['cnpj'] is not None and
+                            'id_pf' in options and options['id_pf'] is not None and
+                            col_pf_name is not None):
                         cnpj = options['cnpj']
                         id_pf = options['id_pf']
                         if result[ds_key][col_cnpj_name].dtype == 'int64':
@@ -62,14 +62,15 @@ class EmpresaRepository(HBaseRepository):
                             cnpj = int(cnpj)
                         result[ds_key] = result[ds_key][result[ds_key][col_cnpj_name] == cnpj]
                     # Filtrar apenas id_pf nos datasets pandas
-                    elif 'id_pf' in options and options['id_pf'] is not None and col_pf_name is not None:
+                    elif ('id_pf' in options and options['id_pf'] is not None
+                            and col_pf_name is not None):
                         id_pf = options['id_pf']
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
                         result[ds_key] = result[ds_key][result[ds_key][col_pf_name] == id_pf]
 
                     if ('perspective' in options and options['perspective'] is not None and
-                        ds_key in self.PERSP_COLUMNS):
+                            ds_key in self.PERSP_COLUMNS):
                         result[ds_key] = result[ds_key][result[ds_key][self.PERSP_COLUMNS[ds_key]] == options['perspective']]
 
                     if not result[ds_key].empty: # Not empty after filters
@@ -80,7 +81,7 @@ class EmpresaRepository(HBaseRepository):
                                 list_dimred = self.SIMPLE_COLUMNS[ds_key]
                                 # Garantir que col_compet sempre estará na lista
                                 if 'col_compet' not in list_dimred:
-                                    list_dimred.append('col_compet') 
+                                    list_dimred.append('col_compet')
                             result[ds_key] = result[ds_key][list_dimred]
 
                         # Captura de metadados
@@ -110,11 +111,15 @@ class EmpresaRepository(HBaseRepository):
                     else: # Empty after filters
                         # Captura de metadados
                         metadata[ds_key] = {}
-                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="index"))    
+                        metadata[ds_key]['stats'] = json.loads(
+                            result[ds_key].describe(include='all').to_json(orient="index")
+                        )
                 else:
                     # Captura de metadados
                     metadata[ds_key] = {}
-                    metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="index"))
+                    metadata[ds_key]['stats'] = json.loads(
+                        result[ds_key].describe(include='all').to_json(orient="index")
+                    )
 
                 # Conversão dos datasets em json
                 result[ds_key] = json.loads(result[ds_key].to_json(orient="records"))
