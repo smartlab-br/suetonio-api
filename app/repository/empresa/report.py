@@ -36,7 +36,7 @@ class ReportRepository(RedisRepository):
         # Restart status from REDIS
         self.get_dao().set(self.REDIS_STATUS_KEY.format(cnpj_raiz), "PROCESSING")
         # Removes old report from REDIS
-        self.get_dao().del(self.REDIS_KEY.format(cnpj_raiz))
+        self.get_dao().delete(self.REDIS_KEY.format(cnpj_raiz))
         # Then publishes to Kafka
         producer.send("polaris-compliance-input-report", bytes(cnpj_raiz, 'utf-8'))
         producer.close()
