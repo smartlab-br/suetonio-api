@@ -34,7 +34,7 @@ class ReportResource(BaseResource):
         content = self.__get_domain().find_report(cnpj_raiz)
         rsp_code = {'FAILED': 201, 'PROCESSING': 204, 'NOTFOUND': 201}
         if isinstance(content, dict):
-            return '', resp_code[content['status']]
+            return '', rsp_code[content['status']]
         return Response(content, mimetype='text/html')
 
     @swagger.doc({
@@ -56,7 +56,7 @@ class ReportResource(BaseResource):
     def post(self, cnpj_raiz):
         ''' Envia para a fila do Kafka '''
         try:
-            return self.__get_domain().generate(cnpj_raiz), 201
+            return self.__get_domain().generate(cnpj_raiz), 202
         except TimeoutError:
             return "Falha na gravação do dicionário", 504
         except (AttributeError, KeyError, ValueError) as err:
