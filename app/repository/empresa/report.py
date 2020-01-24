@@ -1,5 +1,6 @@
 ''' Repository para recuperar informações de uma empresa '''
 from repository.base import RedisRepository
+from flask import current_app
 from kafka import KafkaProducer
 import json
 
