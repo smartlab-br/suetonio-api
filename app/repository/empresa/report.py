@@ -15,11 +15,11 @@ class ReportRepository(RedisRepository):
         # If no report is found, checks REDIS status
         if report is None or report == '':
             redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))
-            if (redis_report_status is not None and redis_report_status != '':
-                if redis_report_status == 'PROCESSING']:
+            if redis_report_status is not None and redis_report_status != '':
+                if redis_report_status == 'PROCESSING':
                     # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
                     return {'status': redis_report_status}
-                elif redis_report_status == 'FAILED']:
+                elif redis_report_status == 'FAILED':
                     # If failed, produces report item in Kafka an sends back the failed status
                     self.store(cnpj_raiz)
                     return {'status': redis_report_status}
