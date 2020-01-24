@@ -32,6 +32,9 @@ class ReportResource(BaseResource):
     def get(self, cnpj_raiz):
         ''' Obtém o report '''
         content = self.__get_domain().find_report(cnpj_raiz)
+        rsp_code = {'FAILED': 201, 'PROCESSING': 204, 'NOTFOUND': 201}
+        if isinstance(content, dict):
+            return '', resp_code[content['status']]
         return Response(content, mimetype='text/html')
 
     @swagger.doc({
