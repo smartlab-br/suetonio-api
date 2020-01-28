@@ -30,14 +30,16 @@ class EmpresaResource(BaseResource):
             },
             {
                 "name": "competencia",
-                "description": "Competência a ser retornada. Depende da fonte de dados (ex. para uma fonte pode ser AAAA, enquanto para outras AAAAMM)",
+                "description": "Competência a ser retornada. Depende da fonte de dados \
+                    (ex. para uma fonte pode ser AAAA, enquanto para outras AAAAMM)",
                 "required": False,
                 "type": 'string',
                 "in": "query"
             },
             {
                 "name": "id_pf",
-                "description": "Identificador da Pessoa Física, dentro da empresa. Tem que informar o dataset (param 'dados')",
+                "description": "Identificador da Pessoa Física, dentro da empresa. \
+                    Tem que informar o dataset (param 'dados')",
                 "required": False,
                 "type": 'string',
                 "in": "query"
@@ -58,7 +60,8 @@ class EmpresaResource(BaseResource):
             },
             {
                 "name": "perspectiva",
-                "description": "Valor que filtra uma perspectiva predefinida de um dataset (ex. No catweb, 'Empregador'). Nem todos os datasets tem essa opção.",
+                "description": "Valor que filtra uma perspectiva predefinida de um dataset \
+                    (ex. No catweb, 'Empregador'). Nem todos os datasets tem essa opção.",
                 "required": False,
                 "type": 'string',
                 "in": "query"

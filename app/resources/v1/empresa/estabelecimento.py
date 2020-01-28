@@ -30,14 +30,16 @@ class EstabelecimentoResource(BaseResource):
             },
             {
                 "name": "competencia",
-                "description": "Competência a ser retornada. Depende da fonte de dados (ex. para uma fonte pode ser AAAA, enquanto para outras AAAAMM)",
+                "description": "Competência a ser retornada. Depende da fonte de dados \
+                    (ex. para uma fonte pode ser AAAA, enquanto para outras AAAAMM)",
                 "required": False,
                 "type": 'string',
                 "in": "query"
             },
             {
                 "name": "id_pf",
-                "description": "Identificador da Pessoa Física, dentro do estabelecimento. Tem que informar o dataset (param 'dados')",
+                "description": "Identificador da Pessoa Física, dentro do estabelecimento. \
+                    Tem que informar o dataset (param 'dados')",
                 "required": False,
                 "type": 'string',
                 "in": "query"
@@ -67,7 +69,7 @@ class EstabelecimentoResource(BaseResource):
         ''' Obtém todos os datasets da empresa '''
         options = request.args.copy()
         options['id_inv'] = cnpj
-        options = self.build_person_options(options, mod='estabelecimento')
+        options = self.build_person_options(options, 'estabelecimento')
 
         result = self.__get_domain().find_datasets(options)
         if 'invalid' in result:

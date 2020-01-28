@@ -1,10 +1,12 @@
 ''' Repository genérico '''
 import json
+import base64
+import gzip
 import requests
 from impala.util import as_pandas
+from pandas.io.json import json_normalize
 from flask import current_app
-from datasources import get_hive_connection, get_impala_connection, \
-    get_hbase_connection, get_redis_pool
+from datasources import get_impala_connection, get_redis_pool
 
 #pylint: disable=R0903
 class BaseRepository():
@@ -241,7 +243,6 @@ class BaseRepository():
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
-        pass
 
     def get_join_suffix(self, table_name):
         ''' Obtém uma string de sufixo de campo de tabela juntada '''
@@ -338,13 +339,13 @@ class BaseRepository():
             )
         return ', '.join(arr_calcs)
 
-    def replace_partition(self, qry_part, options={}):
+    def replace_partition(self, qry_part, options):
         ''' Changes OVER clause when there's no partitioning '''
         if self.get_default_partitioning(options) == '':
             return self.CALCS_DICT[qry_part].replace("PARTITION BY {partition}", "")
         return self.CALCS_DICT[qry_part]
 
-    def exclude_from_partition(self, categorias, agregacoes, options={}):
+    def exclude_from_partition(self, categorias, agregacoes, options):
         ''' Remove do partition as categorias não geradas pela agregação '''
         partitions = self.get_default_partitioning(options).split(", ")
         groups = self.build_grouping_string(categorias, agregacoes).replace('GROUP BY ', '').split(", ")
@@ -354,7 +355,7 @@ class BaseRepository():
                 result.append(partition)
         return ", ".join(result)
 
-    def get_default_partitioning(self, options):
+    def get_default_partitioning(self, _options):
         ''' Default method for getting partitioning '''
         return self.DEFAULT_PARTITIONING
 
@@ -509,7 +510,7 @@ class BaseRepository():
         return False
 
 class HadoopRepository(BaseRepository):
-    '''Generic class for hive repositories '''
+    '''Generic class for hive/impala repositories '''
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
         raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
@@ -589,14 +590,8 @@ class HadoopRepository(BaseRepository):
 
         return self.fetch_data(query)
 
-class HiveRepository(HadoopRepository):
-    '''Generic class for hive repositories '''
-    def load_and_prepare(self):
-        ''' Prepara o DAO '''
-        self.dao = get_hive_connection()
-
 class ImpalaRepository(HadoopRepository):
-    '''Generic class for hive repositories '''
+    '''Generic class for impala repositories '''
     def load_and_prepare(self):
         ''' Prepara o DAO '''
         self.dao = get_impala_connection()
@@ -615,9 +610,10 @@ class HBaseRepository():
 
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
-        pass
+        return None
 
-    def fetch_data(self, table, key, column_family, column):
+    @staticmethod
+    def fetch_data(table, key, column_family, column):
         ''' Gets data from HBase instance '''
         url = "http://{}:{}/{}/{}".format(
             current_app.config["HBASE_HOST"],
@@ -639,10 +635,6 @@ class HBaseRepository():
 
     def find_row(self, table, key, column_family, column):
         ''' Obtém dataset de acordo com os parâmetros informados '''
-        import base64
-        import gzip
-        from pandas.io.json import json_normalize
-
         # Makes sure the returning data will be a JSON
         result = {}
         for row_key in self.fetch_data(table, key, column_family, column):

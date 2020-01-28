@@ -32,7 +32,12 @@ class EmpresaRepository(HBaseRepository):
     def find_datasets(self, options):
         ''' Localiza um município pelo código do IBGE '''
         if 'cnpj_raiz' in options and options['cnpj_raiz'] is not None:
-            result = self.find_row('empresa', options['cnpj_raiz'], options.get('column_family'), options.get('column'))
+            result = self.find_row(
+                'empresa',
+                options['cnpj_raiz'],
+                options.get('column_family'),
+                options.get('column')
+            )
             metadata = {}
 
             for ds_key in result:
@@ -62,8 +67,8 @@ class EmpresaRepository(HBaseRepository):
                             cnpj = int(cnpj)
                         result[ds_key] = result[ds_key][result[ds_key][col_cnpj_name] == cnpj]
                     # Filtrar apenas id_pf nos datasets pandas
-                    elif ('id_pf' in options and options['id_pf'] is not None
-                            and col_pf_name is not None):
+                    elif ('id_pf' in options and options['id_pf'] is not None and
+                            col_pf_name is not None):
                         id_pf = options['id_pf']
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
@@ -86,25 +91,48 @@ class EmpresaRepository(HBaseRepository):
 
                         # Captura de metadados
                         metadata[ds_key] = {}
-                        metadata[ds_key]['stats'] = json.loads(result[ds_key].describe(include='all').to_json(orient="index"))
+                        metadata[ds_key]['stats'] = json.loads(
+                            result[ds_key].describe(include='all').to_json(orient="index")
+                        )
 
                         stats_estab = result[ds_key].groupby(col_cnpj_name).describe(include='all')
-                        stats_estab.columns = ["_".join(col).strip() for col in stats_estab.columns.values]
-                        metadata[ds_key]['stats_estab'] = json.loads(stats_estab.to_json(orient="index"))
+                        stats_estab.columns = [
+                            "_".join(col).strip()
+                            for
+                            col
+                            in
+                            stats_estab.columns.values
+                        ]
+                        metadata[ds_key]['stats_estab'] = json.loads(
+                            stats_estab.to_json(orient="index")
+                        )
 
                         stats_compet = result[ds_key].groupby('col_compet').describe(include='all')
-                        stats_compet.columns = ["_".join(col).strip() for col in stats_compet.columns.values]
-                        metadata[ds_key]['stats_compet'] = json.loads(stats_compet.to_json(orient="index"))
+                        stats_compet.columns = [
+                            "_".join(col).strip() for col in stats_compet.columns.values
+                        ]
+                        metadata[ds_key]['stats_compet'] = json.loads(
+                            stats_compet.to_json(orient="index")
+                        )
 
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(col_pf_name).describe(include='all')
 
-                        stats_estab_compet = result[ds_key].groupby(['col_compet', col_cnpj_name]).describe(include='all')
-                        stats_estab_compet.columns = ["_".join(col).strip() for col in stats_estab_compet.columns.values]
+                        stats_estab_compet = result[ds_key].groupby(
+                            ['col_compet', col_cnpj_name]
+                        ).describe(include='all')
+                        stats_estab_compet.columns = [
+                            "_".join(col).strip() for col in stats_estab_compet.columns.values
+                        ]
                         stats_estab_compet = stats_estab_compet.reset_index()
-                        stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + '_' + stats_estab_compet[col_cnpj_name].apply(str)
+                        stats_estab_compet['idx'] = '_'.join([
+                            stats_estab_compet['col_compet'].apply(str),
+                            stats_estab_compet[col_cnpj_name].apply(str)
+                        ])
                         stats_estab_compet = stats_estab_compet.set_index('idx')
-                        metadata[ds_key]['stats_estab_compet'] = json.loads(stats_estab_compet.to_json(orient="index"))
+                        metadata[ds_key]['stats_estab_compet'] = json.loads(
+                            stats_estab_compet.to_json(orient="index")
+                        )
 
                         ## RETIRADO pois a granularidade torna imviável a performance
                         # metadata['stats_pf_compet'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(['col_compet', col_cnpj_name]).describe(include='all')
