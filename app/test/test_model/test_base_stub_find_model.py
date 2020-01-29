@@ -23,7 +23,9 @@ class BaseModelFindDatasetTest(unittest.TestCase):
 
         options = {
             **{
-                "categorias": ['nm_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun'],
+                "categorias": [
+                    'nm_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun'
+                ],
                 "pivot": None
             }, **COMMON_OPTIONS
         }
@@ -51,7 +53,9 @@ class BaseModelFindDatasetTest(unittest.TestCase):
         model = StubFindModel()
         options = {
             **{
-                "categorias": ['nm_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun'],
+                "categorias": [
+                    'nm_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun'
+                ],
                 "pivot": None,
                 "no_wrap": True
             }, **COMMON_OPTIONS

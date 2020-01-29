@@ -59,7 +59,9 @@ class EmpresaRepository(HBaseRepository):
                             cnpj = int(cnpj)
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
-                        result[ds_key] = result[ds_key][(result[ds_key][col_cnpj_name] == cnpj) & (result[ds_key][col_pf_name] == id_pf)]
+                        result[ds_key] = result[ds_key][
+                            (result[ds_key][col_cnpj_name] == cnpj) & (result[ds_key][col_pf_name] == id_pf)
+                        ]
                     # Filtrar apenas cnpj nos datasets pandas
                     elif 'cnpj' in options and options['cnpj'] is not None:
                         cnpj = options['cnpj']
@@ -68,7 +70,7 @@ class EmpresaRepository(HBaseRepository):
                         result[ds_key] = result[ds_key][result[ds_key][col_cnpj_name] == cnpj]
                     # Filtrar apenas id_pf nos datasets pandas
                     elif ('id_pf' in options and options['id_pf'] is not None and
-                            col_pf_name is not None):
+                          col_pf_name is not None):
                         id_pf = options['id_pf']
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
@@ -76,7 +78,9 @@ class EmpresaRepository(HBaseRepository):
 
                     if ('perspective' in options and options['perspective'] is not None and
                             ds_key in self.PERSP_COLUMNS):
-                        result[ds_key] = result[ds_key][result[ds_key][self.PERSP_COLUMNS[ds_key]] == options['perspective']]
+                        result[ds_key] = result[ds_key][
+                            result[ds_key][self.PERSP_COLUMNS[ds_key]] == options['perspective']
+                        ]
 
                     if not result[ds_key].empty: # Not empty after filters
                         # Redução de dimensionalidade (simplified)
@@ -116,7 +120,9 @@ class EmpresaRepository(HBaseRepository):
                         )
 
                         ## RETIRADO pois a granularidade torna imviável a performance
-                        # metadata['stats_pf'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(col_pf_name).describe(include='all')
+                        # metadata['stats_pf'] = result[ds_key][
+                        #     [col_pf_name, 'col_compet']
+                        # ].groupby(col_pf_name).describe(include='all')
 
                         stats_estab_compet = result[ds_key].groupby(
                             ['col_compet', col_cnpj_name]
@@ -135,7 +141,11 @@ class EmpresaRepository(HBaseRepository):
                         )
 
                         ## RETIRADO pois a granularidade torna imviável a performance
-                        # metadata['stats_pf_compet'] = result[ds_key][[col_pf_name, 'col_compet']].groupby(['col_compet', col_cnpj_name]).describe(include='all')
+                        # metadata['stats_pf_compet'] = result[ds_key][
+                        #     [col_pf_name, 'col_compet']
+                        # ].groupby(
+                        #     ['col_compet', col_cnpj_name]
+                        # ).describe(include='all')
                     else: # Empty after filters
                         # Captura de metadados
                         metadata[ds_key] = {}
@@ -153,3 +163,4 @@ class EmpresaRepository(HBaseRepository):
                 result[ds_key] = json.loads(result[ds_key].to_json(orient="records"))
 
             return (result, metadata)
+        return (None, None)

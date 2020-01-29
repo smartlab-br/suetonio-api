@@ -8,10 +8,10 @@ class ThematicResource(BaseResource):
     ''' Classe de múltiplos Indicadores Municipais '''
     CUSTOM_SWAGGER_PARAMS = [
         {"name": "theme", "required": False, "type": 'string', "in": "path",
-            "description": "Identificador do tema para buscar a tabela \
+         "description": "Identificador do tema para buscar a tabela \
             correspondente."},
         {"name": "categorias", "required": True, "type": 'string', "in": "query",
-            "description": "Informações que devem ser trazidas no dataset. \
+         "description": "Informações que devem ser trazidas no dataset. \
             Para renomear campos do dataset de retorno, após o campo de \
             consulta, adicionar o novo nome, separado por '-' (ex: \
             campo-campo_novo)."}

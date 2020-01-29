@@ -1,7 +1,7 @@
 ''' Repository para recuperar informações de uma empresa '''
 from kafka import KafkaProducer
-from repository.base import RedisRepository
 from flask import current_app
+from repository.base import RedisRepository
 
 #pylint: disable=R0903
 class ReportRepository(RedisRepository):

@@ -267,7 +267,9 @@ class BaseModel():
         for coefficient in coefficients:
             coefficient_parts = coefficient.split("-")
             if coefficient_parts[0] in each_obj['dataset']:
-                each_obj['dataset'][coefficient_parts[0]] = each_obj['dataset'][coefficient_parts[0]] * float(coefficient_parts[1])
+                each_obj['dataset'][coefficient_parts[0]] = each_obj['dataset'][
+                    coefficient_parts[0]
+                ] * float(coefficient_parts[1])
         return each_obj
 
     @staticmethod
@@ -473,7 +475,9 @@ class BaseModel():
             if each_filter[0] == 'nn':
                 base_dataset = base_dataset.dropna(subset=each_filter[1:])
             if each_filter[0] == 'eq':
-                base_dataset = base_dataset[base_dataset[each_filter[1]].astype(str) == each_filter[2]]
+                base_dataset = base_dataset[
+                    base_dataset[each_filter[1]].astype(str) == each_filter[2]
+                ]
             if each_filter[0] == 'in':
                 base_dataset = base_dataset[base_dataset[each_filter[1]].isin(each_filter[2:])]
         return base_dataset

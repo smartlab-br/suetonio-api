@@ -2,11 +2,11 @@
 from datetime import datetime
 import requests
 from kafka import KafkaProducer
+from flask import current_app
 from model.base import BaseModel
 from model.empresa.datasets import DatasetsRepository
 from repository.empresa.empresa import EmpresaRepository
 from repository.empresa.pessoadatasets import PessoaDatasetsRepository
-from flask import current_app
 
 #pylint: disable=R0903
 class Empresa(BaseModel):
@@ -63,7 +63,7 @@ class Empresa(BaseModel):
             producer.send(t_name, msg)
         producer.close()
 
-    def get_loading_entry(self, cnpj_raiz, options={}):
+    def get_loading_entry(self, cnpj_raiz, options=None):
         ''' Verifica se há uma entrada ainda válida para ingestão de dados da empresa '''
         rules_dao = DatasetsRepository()
         loading_status_dao = PessoaDatasetsRepository()
@@ -79,7 +79,8 @@ class Empresa(BaseModel):
             # A entrada tem menos de 1 mês?
             if (columns_available is None or
                     any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
-                    ('when' in columns_available and (datetime.strptime(columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
+                    ('when' in columns_available and (datetime.strptime(
+                        columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
                 is_valid = False
             loading_entry[dataframe] = columns_available
 

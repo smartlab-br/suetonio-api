@@ -1,3 +1,4 @@
+''' Constants used in stub classes '''
 COMMON_EXPECTED_RESPONSE_STRING = """{{
     "metadata": {{"fonte": "Instituto STUB"}},
     "dataset": [{{{0}}}]
