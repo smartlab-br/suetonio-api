@@ -42,6 +42,7 @@ class Empresa(BaseModel):
                 result['dataset'] = dataset
         except requests.exceptions.HTTPError:
             loading_entry_is_valid = False
+            self.produce(options['cnpj_raiz'])
         if not loading_entry_is_valid:
             result['invalid'] = True
         if 'column' in options:
@@ -82,7 +83,8 @@ class Empresa(BaseModel):
                     ('when' in columns_available and (datetime.strptime(
                         columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
                 is_valid = False
-            loading_entry[dataframe] = columns_available
+            if columns_available:
+                loading_entry[dataframe] = columns_available
 
             if 'column' in options:
                 column_status = self.assess_column_status(
