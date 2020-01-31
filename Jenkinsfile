@@ -13,28 +13,28 @@ pipeline {
             }
         }
 
-        stage('Execute unit tests') {
-            agent {
-                docker {
-                    image 'smartlab/flask:latest'
-                    args '-u root:root'
-                    reuseNode true
-                }
-            }
-            environment {
-                PYTHONPATH = "${pwd()}/app:$PYTHONPATH"
-                PYTHONDONTWRITEBYTECODE = 1
-            }
-            steps {
-                executeUnitTests()
-            }
-            post {
-               always {
-                    junit 'app/test/report.xml'
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: 'app/test/coverage/coverage.xml'])
-                }
-            }
-        }
+        // stage('Execute unit tests') {
+        //     agent {
+        //         docker {
+        //             image 'smartlab/flask:latest'
+        //             args '-u root:root'
+        //             reuseNode true
+        //         }
+        //     }
+        //     environment {
+        //         PYTHONPATH = "${pwd()}/app:$PYTHONPATH"
+        //         PYTHONDONTWRITEBYTECODE = 1
+        //     }
+        //     steps {
+        //         executeUnitTests()
+        //     }
+        //     post {
+        //        always {
+        //             junit 'app/test/report.xml'
+        //             step([$class: 'CoberturaPublisher', coberturaReportFile: 'app/test/coverage/coverage.xml'])
+        //         }
+        //     }
+        // }
 
         // stage('SonarQube analysis') {
         //     steps {
