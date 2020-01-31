@@ -33,7 +33,7 @@ class EstabelecimentoResource(EmpresaResource):
         ''' Obtém todos os datasets da empresa '''
         options = request.args.copy()
         options['id_inv'] = cnpj
-        options = self.build_person_options(options, 'estabelecimento')
+        options = self.build_person_options(options, mod='estabelecimento')
 
         result = self.__get_domain().find_datasets(options)
         if 'invalid' in result:

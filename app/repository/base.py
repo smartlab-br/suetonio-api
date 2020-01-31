@@ -627,7 +627,6 @@ class HBaseRepository():
                 url = url + ":" + str(column)
 
         response = requests.get(url, headers={'Accept': 'application/json'})
-
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
 
