@@ -58,6 +58,7 @@ def img_parent_pull() {
 
 def executeUnitTests() {
     //dir ("app") {
+    sh "pip3 install -Iv pandas==0.23.3 flask-restful==0.3.6 requests==2.21.0 PyYAML==5.1 Babel==2.6.0 impyla==0.15a1 kafka-python==1.4.7 redis==3.0.1"
     sh "pip3 install nose2"
     sh "nose2 --config app/test/nose2.cfg --with-cov --coverage-report xml --coverage-config app/test/coverage/.coveragerc"
     //}
