@@ -1,12 +1,15 @@
 ''' Repository genérico '''
-import requests
 import json
-from flask import current_app
+import base64
+import gzip
+import requests
 from impala.util import as_pandas
-from datasources import get_hive_connection, get_impala_connection, get_hbase_connection, get_redis_pool
+from pandas.io.json import json_normalize
+from flask import current_app
+from datasources import get_impala_connection, get_redis_pool
 
 #pylint: disable=R0903
-class BaseRepository(object):
+class BaseRepository():
     ''' Generic class for repositories '''
     NAMED_QUERIES = {
         'QRY_FIND_DATASET': 'SELECT {} FROM {} {} {} {} {} {}',
@@ -30,27 +33,27 @@ class BaseRepository(object):
                         'AS api_calc_{calc}'
                        ),
         "norm_pos_part": ('CASE '
-                            '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
-                                'MIN({val_field}) OVER(PARTITION BY {partition})) '
+                          '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
+                          'MIN({val_field}) OVER(PARTITION BY {partition})) '
                           'WHEN 0 '
                           'THEN 0.5 '
                           'ELSE '
                           '({val_field} - MIN({val_field}) OVER(PARTITION BY {partition})) / '
-                            '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
-                                'MIN({val_field}) OVER(PARTITION BY {partition})) '
+                          '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
+                          'MIN({val_field}) OVER(PARTITION BY {partition})) '
                           'END '
                           'AS api_calc_{calc}'
                          ),
         "ln_norm_pos_part": ('CASE '
-                                '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
-                                    'MIN({val_field}) OVER(PARTITION BY {partition})) '
+                             '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
+                             'MIN({val_field}) OVER(PARTITION BY {partition})) '
                              'WHEN 0 '
                              'THEN LOG10(1.5) '
                              'ELSE '
-                                'LOG10(({val_field} - MIN({val_field}) '
-                                    'OVER(PARTITION BY {partition})) / '
-                                    '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
-                                    'MIN({val_field}) OVER(PARTITION BY {partition})) + 1.0001) '
+                             'LOG10(({val_field} - MIN({val_field}) '
+                             'OVER(PARTITION BY {partition})) / '
+                             '(MAX({val_field}) OVER(PARTITION BY {partition}) - '
+                             'MIN({val_field}) OVER(PARTITION BY {partition})) + 1.0001) '
                              'END '
                              'AS api_calc_{calc}'
                             ),
@@ -240,7 +243,6 @@ class BaseRepository(object):
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
-        pass
 
     def get_join_suffix(self, table_name):
         ''' Obtém uma string de sufixo de campo de tabela juntada '''
@@ -307,7 +309,7 @@ class BaseRepository(object):
         str_res_partition = res_partition
         if isinstance(res_partition, list):
             str_res_partition = ",".join(res_partition)
-        
+
         # Constrói a query
         arr_calcs = []
         for calc in options['calcs']:
@@ -337,13 +339,13 @@ class BaseRepository(object):
             )
         return ', '.join(arr_calcs)
 
-    def replace_partition(self, qry_part, options={}):
+    def replace_partition(self, qry_part, options=None):
         ''' Changes OVER clause when there's no partitioning '''
         if self.get_default_partitioning(options) == '':
             return self.CALCS_DICT[qry_part].replace("PARTITION BY {partition}", "")
         return self.CALCS_DICT[qry_part]
 
-    def exclude_from_partition(self, categorias, agregacoes, options={}):
+    def exclude_from_partition(self, categorias, agregacoes, options=None):
         ''' Remove do partition as categorias não geradas pela agregação '''
         partitions = self.get_default_partitioning(options).split(", ")
         groups = self.build_grouping_string(categorias, agregacoes).replace('GROUP BY ', '').split(", ")
@@ -352,8 +354,9 @@ class BaseRepository(object):
             if partition in groups:
                 result.append(partition)
         return ", ".join(result)
-    
-    def get_default_partitioning(self, options):
+
+    def get_default_partitioning(self, _options):
+        ''' Default method for getting partitioning '''
         return self.DEFAULT_PARTITIONING
 
     def combine_val_aggr(self, valor, agregacao, suffix=None):
@@ -507,7 +510,7 @@ class BaseRepository(object):
         return False
 
 class HadoopRepository(BaseRepository):
-    '''Generic class for hive repositories '''
+    '''Generic class for hive/impala repositories '''
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
         raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
@@ -587,19 +590,13 @@ class HadoopRepository(BaseRepository):
 
         return self.fetch_data(query)
 
-class HiveRepository(HadoopRepository):
-    '''Generic class for hive repositories '''
-    def load_and_prepare(self):
-        ''' Prepara o DAO '''
-        self.dao = get_hive_connection()
-
 class ImpalaRepository(HadoopRepository):
-    '''Generic class for hive repositories '''
+    '''Generic class for impala repositories '''
     def load_and_prepare(self):
         ''' Prepara o DAO '''
         self.dao = get_impala_connection()
 
-class HBaseRepository(object):
+class HBaseRepository():
     ''' HBase connector class '''
     def __init__(self):
         ''' Construtor '''
@@ -613,18 +610,23 @@ class HBaseRepository(object):
 
     def load_and_prepare(self):
         ''' Método abstrato para carregamento do dataset '''
-        pass
+        return None
 
-    def fetch_data(self, table, key, column_family, column):
+    @staticmethod
+    def fetch_data(table, key, column_family, column):
         ''' Gets data from HBase instance '''
-        url = "http://" + current_app.config["HBASE_HOST"] + ":" + current_app.config["HBASE_PORT"] + "/" + table + "/" + key 
+        url = "http://{}:{}/{}/{}".format(
+            current_app.config["HBASE_HOST"],
+            current_app.config["HBASE_PORT"],
+            table,
+            key
+        )
         if column_family is not None:
             url = url + "/" + str(column_family)
             if column is not None:
                 url = url + ":" + str(column)
 
-        response = requests.get(url, headers = {'Accept': 'application/json'})
-
+        response = requests.get(url, headers={'Accept': 'application/json'})
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
 
@@ -632,10 +634,6 @@ class HBaseRepository(object):
 
     def find_row(self, table, key, column_family, column):
         ''' Obtém dataset de acordo com os parâmetros informados '''
-        import base64
-        import gzip
-        from pandas.io.json import json_normalize
-
         # Makes sure the returning data will be a JSON
         result = {}
         for row_key in self.fetch_data(table, key, column_family, column):
@@ -651,7 +649,7 @@ class HBaseRepository(object):
                 dataset['col_compet'] = column_parts[1]
 
                 # Append do existing dataset or create a new one
-                if (column_parts[0] in result):
+                if column_parts[0] in result:
                     result[column_parts[0]] = result[column_parts[0]].append(dataset, ignore_index=True)
                 else:
                     result[column_parts[0]] = dataset

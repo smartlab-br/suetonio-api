@@ -1,11 +1,10 @@
 ''' Controller para fornecer dados das organizações de assistência social '''
-import requests
-from flask import request, Response
 from flask_restful_swagger_2 import swagger
-from resources.base import BaseResource
+from flask import Response
+from resources.v1.empresa.empresa import EmpresaResource
 from model.empresa.report import Report
 
-class ReportResource(BaseResource):
+class ReportResource(EmpresaResource):
     ''' Classe de múltiplas incidências '''
     def __init__(self):
         ''' Construtor'''
@@ -14,15 +13,7 @@ class ReportResource(BaseResource):
     @swagger.doc({
         'tags':['report'],
         'description':'Obtém o report gerado no Compliance',
-        'parameters':[
-            {
-                "name": "cnpj_raiz",
-                "description": "CNPJ Raiz da empresa consultada",
-                "required": True,
-                "type": 'string',
-                "in": "path"
-            }
-        ],
+        'parameters': EmpresaResource.CUSTOM_SWAGGER_PARAMS,
         'responses': {
             '200': {
                 'description': 'Report (base-64)'
@@ -39,16 +30,8 @@ class ReportResource(BaseResource):
 
     @swagger.doc({
         'tags':['report'],
-        'description':'Envia CNPJ RAIZ para a fila de processamento do report.',
-        'parameters':[
-            {
-                "name": "cnpj_raiz",
-                "description": "CNPJ Raiz da empresa consultada",
-                "required": True,
-                "type": 'string',
-                "in": "path"
-            }
-        ],
+        'description': 'Envia CNPJ RAIZ para a fila de processamento do report.',
+        'parameters': EmpresaResource.CUSTOM_SWAGGER_PARAMS,
         'responses': {
             '201': {'description': 'Report'}
         }

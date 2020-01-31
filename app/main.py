@@ -1,9 +1,9 @@
 """API Base """
 import os
-from flask import Flask
-from flask import g
 from flask_cors import CORS
 from flask_restful_swagger_2 import Api
+from flask import Flask
+from flask import g
 
 from service.request_handler import FLPORequestHandler
 
@@ -21,23 +21,19 @@ from resources.v1.thematic import ThematicResource
 
 from resources.v1.healthchecks import HCAlive
 
-config = {
+CONFIG = {
     "dev": "config.dev.DevelopmentConfig",
     "prod": "config.prod.ProductionConfig",
     "staging": "config.staging.StagingConfig",
 }
 
 application = Flask(__name__, static_folder='static', static_url_path='') #pylint: disable=C0103
-config_name = os.getenv('FLASK_CONFIGURATION', 'dev')
-application.config.from_object(config[config_name])
+CONFIG_NAME = os.getenv('FLASK_CONFIGURATION', 'dev')
+application.config.from_object(CONFIG[CONFIG_NAME])
 
 @application.teardown_appcontext
-def close_db_connection(error):
+def close_db_connection(_error):
     ''' Cleanup on application crash '''
-    # Encerra a conexão com o hive
-    if hasattr(g, 'hive_connection'):
-        g.hive_connection.close()
-        g.hive_connection = None
     # Encerra a conexão com o impala
     if hasattr(g, 'impala_connection'):
         g.impala_connection.close()
@@ -46,10 +42,6 @@ def close_db_connection(error):
     if hasattr(g, 'redis_pool'):
         del g.redis_pool
         g.redis_pool = None
-    # # Encerra a conexão com o impala
-    # if hasattr(g, 'hbase_connection'):
-    #     g.hbase_connection.close()
-    #     g.hbase_connection = None
 
 CORS = CORS(application, resources={r"/*": {"origins": "*"}})
 api = Api(application, api_version='0.1', api_spec_url='/api/swagger') #pylint: disable=C0103
