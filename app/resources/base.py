@@ -44,6 +44,6 @@ class BaseResource(Resource):
         return QueryOptionsBuilder.build_options(r_args)
 
     @staticmethod
-    def build_person_options(r_args):
+    def build_person_options(r_args, mod='empresa'):
         ''' Constrói as opções da pesquisa '''
-        return QueryOptionsBuilder.build_person_options(r_args, mod='empresa')
+        return QueryOptionsBuilder.build_person_options(r_args, mod)

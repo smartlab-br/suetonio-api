@@ -36,8 +36,8 @@ class QueryOptionsBuilder():
             return params.get(param_name).split(',')
         return None
 
-    @classmethod
-    def build_person_options(cls, r_args, mod='empresa'):
+    @staticmethod
+    def build_person_options(r_args, mod='empresa'):
         ''' Constrói as opções da pesquisa '''
         options = {}
 

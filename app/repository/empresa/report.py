@@ -1,15 +1,14 @@
 ''' Repository para recuperar informações de uma empresa '''
-from repository.base import RedisRepository
-from flask import current_app
 from kafka import KafkaProducer
-import json
+from flask import current_app
+from repository.base import RedisRepository
 
 #pylint: disable=R0903
 class ReportRepository(RedisRepository):
     ''' Definição do repo '''
     REDIS_KEY = 'rmd:{}'
     REDIS_STATUS_KEY = 'rmd:st:{}'
-    
+
     def find_report(self, cnpj_raiz):
         ''' Localiza o report no REDIS '''
         report = self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz))
@@ -20,7 +19,7 @@ class ReportRepository(RedisRepository):
                 if redis_report_status == 'PROCESSING':
                     # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
                     return {'status': redis_report_status}
-                elif redis_report_status == 'FAILED':
+                if redis_report_status == 'FAILED':
                     # If failed, produces report item in Kafka an sends back the failed status
                     self.store(cnpj_raiz)
                     return {'status': redis_report_status}
