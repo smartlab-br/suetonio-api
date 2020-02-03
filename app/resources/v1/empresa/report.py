@@ -6,10 +6,6 @@ from model.empresa.report import Report
 
 class ReportResource(EmpresaResource):
     ''' Classe de múltiplas incidências '''
-    def __init__(self):
-        ''' Construtor'''
-        self.domain = Report()
-
     @swagger.doc({
         'tags':['report'],
         'description':'Obtém o report gerado no Compliance',
@@ -50,3 +46,7 @@ class ReportResource(EmpresaResource):
         if self.domain is None:
             self.domain = Report()
         return self.domain
+
+    def __set_domain(self):
+        ''' Domain setter, called from constructor '''
+        self.domain = Report()

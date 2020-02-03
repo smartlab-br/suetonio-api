@@ -65,7 +65,8 @@ class EmpresaResource(BaseResource):
 
     def __init__(self):
         ''' Construtor'''
-        self.domain = Empresa()
+        self.domain = None
+        self.__set_domain()
 
     @swagger.doc({
         'tags':['empresa'],
@@ -120,3 +121,7 @@ class EmpresaResource(BaseResource):
         if self.domain is None:
             self.domain = Empresa()
         return self.domain
+
+    def __set_domain(self):
+        ''' Domain setter, called from constructor '''
+        self.domain = Empresa()

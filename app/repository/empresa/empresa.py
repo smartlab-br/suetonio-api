@@ -60,7 +60,8 @@ class EmpresaRepository(HBaseRepository):
                         if result[ds_key][col_pf_name].dtype == 'int64':
                             id_pf = int(id_pf)
                         result[ds_key] = result[ds_key][
-                            (result[ds_key][col_cnpj_name] == cnpj) & (result[ds_key][col_pf_name] == id_pf)
+                            (result[ds_key][col_cnpj_name] == cnpj) &
+                            (result[ds_key][col_pf_name] == id_pf)
                         ]
                     # Filtrar apenas cnpj nos datasets pandas
                     elif 'cnpj' in options and options['cnpj'] is not None:
@@ -131,7 +132,8 @@ class EmpresaRepository(HBaseRepository):
                             "_".join(col).strip() for col in stats_estab_compet.columns.values
                         ]
                         stats_estab_compet = stats_estab_compet.reset_index()
-                        stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + '_' + stats_estab_compet[col_cnpj_name].apply(str)
+                        stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + \
+                            '_' + stats_estab_compet[col_cnpj_name].apply(str)
                         stats_estab_compet = stats_estab_compet.set_index('idx')
                         metadata[ds_key]['stats_estab_compet'] = json.loads(
                             stats_estab_compet.to_json(orient="index")
