@@ -3,7 +3,7 @@ import unittest
 
 def test_one():
     '''Teste do teste'''
-    pass
+    # pass
 
 class TestClass(unittest.TestCase):
     '''Classe de testes'''
