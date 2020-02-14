@@ -19,10 +19,9 @@ def get_impala_connection():
 def get_redis_pool():
     ''' Gerencia a conexão com o redis '''
     if not hasattr(g, 'redis_pool'):
-        g.redis_pool = redis.StrictRedis(
+        g.redis_pool = redis.Redis(
             host=current_app.config['REDIS_HOST'],
             port=current_app.config['REDIS_PORT'], # 6379,
-            db=current_app.config['REDIS_DB'], # 0
-            decode_responses=True
+            db=current_app.config['REDIS_DB'] # 0
         )
     return g.redis_pool
