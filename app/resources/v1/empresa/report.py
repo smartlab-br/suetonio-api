@@ -48,7 +48,6 @@ class ReportResource(EmpresaResource):
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
-        print('aqui')
         if self.domain is None:
             self.__set_domain()
         return self.domain

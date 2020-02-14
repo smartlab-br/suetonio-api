@@ -12,8 +12,7 @@ class ReportRepository(RedisRepository):
 
     def find_report(self, cnpj_raiz):
         ''' Localiza o report no REDIS '''
-        print(self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz)))
-        # base64.urlsafe_b64decode(
+        print(base64.urlsafe_b64decode(self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))))
         report = self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz))
         # If no report is found, checks REDIS status
         if report is None or report == '':
@@ -37,6 +36,7 @@ class ReportRepository(RedisRepository):
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         # Restart status from REDIS
         self.get_dao().set(self.REDIS_STATUS_KEY.format(cnpj_raiz), "PROCESSING")
+        self.get_dao().set(self.REDIS_STATUS_KEY.format(cnpj_raiz) + ":shadow", "PROCESSING")
         # Removes old report from REDIS
         self.get_dao().delete(self.REDIS_KEY.format(cnpj_raiz))
         # Then publishes to Kafka
