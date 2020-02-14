@@ -20,13 +20,7 @@ class DatasetsRepository(RedisRepository):
 
     def retrieve(self):
         ''' Localiza o dicionário de datasources no REDIS '''
-        return {
-            key.decode(): value.decode()
-            for
-            (key, value)
-            in
-            self.get_dao().hgetall(self.REDIS_KEY).items()
-        }
+        return self.retrieve_hashset(self.REDIS_KEY)
 
     def store(self):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''

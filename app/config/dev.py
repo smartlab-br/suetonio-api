@@ -1,6 +1,7 @@
 ''' Configuration loader for development environment '''
 import os
 
+#pylint: disable=R0903
 class DevelopmentConfig():
     ''' Configuration handler '''
     IMPALA_HOST = os.getenv('IMPALA_HOST')

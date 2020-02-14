@@ -37,6 +37,9 @@ class BaseResource(Resource):
             ln_var_part, norm_pos_part, ln_norm_pos_part, norm_part e \
             ln_norm_part."}
     ]
+    CAT_DETAIL = "Para renomear campos do dataset de retorno, após o campo de \
+        consulta, adicionar o novo nome, separado por '-' (ex: \
+        campo-campo_novo)."
 
     @staticmethod
     def build_options(r_args):
