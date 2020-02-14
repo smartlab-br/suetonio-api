@@ -12,9 +12,7 @@ class ThematicResource(BaseResource):
             correspondente."},
         {"name": "categorias", "required": True, "type": 'string', "in": "query",
          "description": "Informações que devem ser trazidas no dataset. \
-            Para renomear campos do dataset de retorno, após o campo de \
-            consulta, adicionar o novo nome, separado por '-' (ex: \
-            campo-campo_novo)."}
+            " + BaseResource.CAT_DETAIL}
     ]
 
     def __init__(self):

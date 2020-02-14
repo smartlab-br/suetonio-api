@@ -8,7 +8,8 @@ class ReportResource(EmpresaResource):
     ''' Classe de múltiplas incidências '''
     def __init__(self):
         ''' Construtor'''
-        self.domain = Report()
+        self.domain = None
+        self.__set_domain()
 
     @swagger.doc({
         'tags':['report'],
@@ -39,7 +40,7 @@ class ReportResource(EmpresaResource):
     def post(self, cnpj_raiz):
         ''' Envia para a fila do Kafka '''
         try:
-            return self.__get_domain().generate(cnpj_raiz), 202
+            return self.get_domain().generate(cnpj_raiz), 202
         except TimeoutError:
             return "Falha na gravação do dicionário", 504
         except (AttributeError, KeyError, ValueError) as err:
@@ -47,6 +48,11 @@ class ReportResource(EmpresaResource):
 
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
+        print('aqui')
         if self.domain is None:
-            self.domain = Report()
+            self.__set_domain()
         return self.domain
+
+    def __set_domain(self):
+        ''' Domain setter, called from constructor '''
+        self.domain = Report()

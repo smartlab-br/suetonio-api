@@ -18,13 +18,18 @@ class Empresa(BaseModel):
 
     def __init__(self):
         ''' Construtor '''
-        self.repo = EmpresaRepository()
+        self.repo = None
+        self.__set_repo()
 
     def get_repo(self):
         ''' Garantia de que o repo estará carregado '''
         if self.repo is None:
             self.repo = EmpresaRepository()
         return self.repo
+
+    def __set_repo(self):
+        ''' Setter invoked in Construtor '''
+        self.repo = EmpresaRepository()
 
     def find_datasets(self, options):
         ''' Localiza um todos os datasets de uma empresa pelo CNPJ Raiz '''
