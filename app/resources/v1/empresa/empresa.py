@@ -55,11 +55,8 @@ class EmpresaResource(BaseResource):
     ]
     CUSTOM_SWAGGER_PARAMS = [
         {
-            "name": "cnpj_raiz",
-            "description": "CNPJ Raiz da empresa consultada",
-            "required": True,
-            "type": 'string',
-            "in": "path"
+            "name": "cnpj_raiz", "required": True, "type": 'string', "in": "path",
+            "description": "CNPJ Raiz da empresa consultada"
         }
     ]
 
@@ -111,7 +108,8 @@ class EmpresaResource(BaseResource):
         try:
             self.__get_domain().produce(cnpj_raiz)
             return 'Análise em processamento', 201
-        except TimeoutError:
+        except TimeoutError as toe:
+            print(toe)
             return "Não foi possível incluir a análise na fila. Tente novamente mais tarde", 504
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 400
@@ -119,7 +117,7 @@ class EmpresaResource(BaseResource):
     def __get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
-            self.domain = Empresa()
+            self.__set_domain()
         return self.domain
 
     def __set_domain(self):

@@ -8,11 +8,8 @@ class EstabelecimentoResource(EmpresaResource):
     ''' Classe de múltiplas incidências '''
     CUSTOM_SWAGGER_PARAMS = [
         {
-            "name": "cnpj",
-            "description": "CNPJ do estabelecimento consultado",
-            "required": True,
-            "type": 'string',
-            "in": "path"
+            "name": "cnpj", "required": True, "type": 'string', "in": "path",
+            "description": "CNPJ do estabelecimento consultado"
         }
     ]
 
