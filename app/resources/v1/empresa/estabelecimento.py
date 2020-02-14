@@ -13,6 +13,11 @@ class EstabelecimentoResource(EmpresaResource):
         }
     ]
 
+    def __init__(self):
+        ''' Construtor'''
+        self.domain = None
+        self.__set_domain()
+
     @swagger.doc({
         'tags':['empresa'],
         'description':'Obtém todos os registros de um único estabelecimento',

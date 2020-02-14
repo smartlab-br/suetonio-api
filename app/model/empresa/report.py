@@ -5,6 +5,11 @@ from repository.empresa.report import ReportRepository
 #pylint: disable=R0903
 class Report(Empresa):
     ''' Definição do repo '''
+    def __init__(self):
+        ''' Construtor '''
+        self.repo = None
+        self.__set_repo()
+
     def get_repo(self):
         ''' Garantia de que o repo estará carregado '''
         if self.repo is None:
