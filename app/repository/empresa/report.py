@@ -12,10 +12,10 @@ class ReportRepository(RedisRepository):
     
     def find_report(self, cnpj_raiz):
         ''' Localiza o report no REDIS '''
-        report = self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz))
+        report = self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz), decode_responses=True)
         # If no report is found, checks REDIS status
         if report is None or report == '':
-            redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))
+            redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz), decode_responses=True)
             if redis_report_status is not None and redis_report_status != '':
                 if redis_report_status == 'PROCESSING':
                     # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
