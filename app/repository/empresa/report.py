@@ -35,7 +35,6 @@ class ReportRepository(RedisRepository):
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         # Restart status from REDIS
         self.get_dao().set(self.REDIS_STATUS_KEY.format(cnpj_raiz), "PROCESSING")
-        self.get_dao().set(self.REDIS_STATUS_KEY.format(cnpj_raiz) + ":shadow", "PROCESSING")
         # Removes old report from REDIS
         self.get_dao().delete(self.REDIS_KEY.format(cnpj_raiz))
         # Then publishes to Kafka
