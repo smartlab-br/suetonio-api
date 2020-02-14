@@ -13,8 +13,8 @@ class ReportRepository(RedisRepository):
     def find_report(self, cnpj_raiz):
         ''' Localiza o report no REDIS '''
         print(self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz)))
-        print(base64.urlsafe_b64decode(self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))))
-        report = self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz))
+        print(self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))))
+        report = base64.urlsafe_b64decode(self.get_dao().get(self.REDIS_KEY.format(cnpj_raiz)))
         # If no report is found, checks REDIS status
         if report is None or report == '':
             redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))
