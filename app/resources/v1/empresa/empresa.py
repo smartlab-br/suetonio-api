@@ -81,11 +81,17 @@ class EmpresaResource(BaseResource):
         options['id_inv'] = cnpj_raiz
         options = self.build_person_options(options)
 
-        result = self.__get_domain().find_datasets(options)
-        if 'invalid' in result:
-            del result['invalid']
-            return result, 202
-        return result
+        try:
+            result = self.__get_domain().find_datasets(options)
+            if 'invalid' in result:
+                del result['invalid']
+                return result, 202
+            return result
+        except TimeoutError as toe:
+            print(toe)
+            return "Não foi possível incluir a análise na fila. Tente novamente mais tarde", 504
+        except (AttributeError, KeyError, ValueError) as err:
+            return str(err), 400
 
     @swagger.doc({
         'tags':['empresa'],

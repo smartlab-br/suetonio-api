@@ -72,6 +72,9 @@ class Empresa(BaseModel):
     def get_loading_entry(self, cnpj_raiz, options=None):
         ''' Verifica se há uma entrada ainda válida para ingestão de dados da empresa '''
         rules_dao = DatasetsRepository()
+        if (not options.get('column_family') or
+                not rules_dao.DATASETS.get((options.get('column_family')))):
+            raise ValueError('Dataset inválido')
         loading_status_dao = PessoaDatasetsRepository()
         is_valid = True
         loading_entry = {}
@@ -97,6 +100,8 @@ class Empresa(BaseModel):
                     columns_available,
                     options['column']
                 )
+                if column_status == 'UNAVAILABLE':
+                    raise ValueError('Competência inválida para o dataset solicitado')
                 if options['column_family'] == dataframe:
                     column_status_specific = column_status
 
