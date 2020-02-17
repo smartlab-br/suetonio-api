@@ -75,6 +75,9 @@ class Empresa(BaseModel):
         if (not options.get('column_family') or
                 not rules_dao.DATASETS.get((options.get('column_family')))):
             raise ValueError('Dataset inválido')
+        if (options.get('column') and 
+                options.get('column') not in rules_dao.DATASETS.get((options.get('column_family'))).split(',')):
+            raise ValueError('Competência inválida para o dataset informado')
         loading_status_dao = PessoaDatasetsRepository()
         is_valid = True
         loading_entry = {}
@@ -100,8 +103,6 @@ class Empresa(BaseModel):
                     columns_available,
                     options['column']
                 )
-                if column_status == 'UNAVAILABLE':
-                    raise ValueError('Competência inválida para o dataset solicitado')
                 if options['column_family'] == dataframe:
                     column_status_specific = column_status
 
