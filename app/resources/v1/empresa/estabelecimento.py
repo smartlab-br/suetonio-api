@@ -34,8 +34,14 @@ class EstabelecimentoResource(EmpresaResource):
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')
 
-        result = self.__get_domain().find_datasets(options)
-        if 'invalid' in result:
-            del result['invalid']
-            return result, 202
-        return result
+        try:
+            result = self.__get_domain().find_datasets(options)
+            if 'invalid' in result:
+                del result['invalid']
+                return result, 202
+            return result
+        except TimeoutError as toe:
+            print(toe)
+            return "Não foi possível incluir a análise na fila. Tente novamente mais tarde", 504
+        except (AttributeError, KeyError, ValueError) as err:
+            return str(err), 400
