@@ -63,7 +63,7 @@ class EmpresaResource(BaseResource):
     def __init__(self):
         ''' Construtor'''
         self.domain = None
-        self.__set_domain()
+        self.set_domain()
 
     @swagger.doc({
         'tags':['empresa'],
@@ -82,7 +82,7 @@ class EmpresaResource(BaseResource):
         options = self.build_person_options(options)
 
         try:
-            result = self.__get_domain().find_datasets(options)
+            result = self.get_domain().find_datasets(options)
             if 'invalid' in result:
                 del result['invalid']
                 return result, 202
@@ -112,7 +112,7 @@ class EmpresaResource(BaseResource):
     def post(self, cnpj_raiz):
         ''' Requisita uma nova análise de uma empresa '''
         try:
-            self.__get_domain().produce(cnpj_raiz)
+            self.get_domain().produce(cnpj_raiz)
             return 'Análise em processamento', 201
         except TimeoutError as toe:
             print(toe)
@@ -120,12 +120,12 @@ class EmpresaResource(BaseResource):
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 400
 
-    def __get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
-            self.__set_domain()
+            self.set_domain()
         return self.domain
 
-    def __set_domain(self):
+    def set_domain(self):
         ''' Domain setter, called from constructor '''
         self.domain = Empresa()

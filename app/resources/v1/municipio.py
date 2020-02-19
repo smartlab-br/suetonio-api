@@ -38,9 +38,9 @@ class MunicipiosResource(BaseResource):
     def get(self):
         ''' Obtém os registros de Municípios, conforme parâmetros informados '''
         options = self.build_options(request.args)
-        return self.__get_domain().find_dataset(options)
+        return self.get_domain().find_dataset(options)
 
-    def __get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
             self.domain = Municipio()
@@ -72,9 +72,9 @@ class MunicipioResource(BaseResource):
     })
     def get(self, cd_municipio_ibge):
         ''' Obtém o registro de estabelecimento com um determinado cnpj '''
-        return self.__get_domain().find_by_cd_ibge(cd_municipio_ibge).to_json(orient='records')
+        return self.get_domain().find_by_cd_ibge(cd_municipio_ibge).to_json(orient='records')
 
-    def __get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
             self.domain = Municipio()

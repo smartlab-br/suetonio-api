@@ -16,7 +16,7 @@ class EstabelecimentoResource(EmpresaResource):
     def __init__(self):
         ''' Construtor'''
         self.domain = None
-        self.__set_domain()
+        self.set_domain()
 
     @swagger.doc({
         'tags':['empresa'],
@@ -35,7 +35,7 @@ class EstabelecimentoResource(EmpresaResource):
         options = self.build_person_options(options, mod='estabelecimento')
 
         try:
-            result = self.__get_domain().find_datasets(options)
+            result = self.get_domain().find_datasets(options)
             if 'invalid' in result:
                 del result['invalid']
                 return result, 202
