@@ -22,7 +22,7 @@ class DatasetsResource(BaseResource):
     def get(self):
         ''' Obtém todos os datasets e competências disponíveis '''
         try:
-            return self.__get_domain().retrieve()
+            return self.get_domain().retrieve()
         except requests.exceptions.HTTPError as error:
             # Whoops it wasn't a 200
             if error.response.status_code == 404:
@@ -40,13 +40,13 @@ class DatasetsResource(BaseResource):
     def post(self):
         ''' Regrava o dicionário padrão no REDIS '''
         try:
-            return self.__get_domain().generate(), 201
+            return self.get_domain().generate(), 201
         except TimeoutError:
             return "Falha na gravação do dicionário", 504
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 500
 
-    def __get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
             self.domain = Datasets()

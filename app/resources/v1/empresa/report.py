@@ -9,7 +9,7 @@ class ReportResource(EmpresaResource):
     def __init__(self):
         ''' Construtor'''
         self.domain = None
-        self.__set_domain()
+        self.set_domain()
 
     @swagger.doc({
         'tags':['report'],
@@ -23,7 +23,7 @@ class ReportResource(EmpresaResource):
     })
     def get(self, cnpj_raiz):
         ''' Obtém o report '''
-        content = self.__get_domain().find_report(cnpj_raiz)
+        content = self.get_domain().find_report(cnpj_raiz)
         rsp_code = {'FAILED': 201, 'PROCESSING': 204, 'NOTFOUND': 201}
         if isinstance(content, dict):
             return '', rsp_code[content['status']]
@@ -46,12 +46,12 @@ class ReportResource(EmpresaResource):
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 500
 
-    def __get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
-            self.__set_domain()
+            self.set_domain()
         return self.domain
 
-    def __set_domain(self):
+    def set_domain(self):
         ''' Domain setter, called from constructor '''
         self.domain = Report()
