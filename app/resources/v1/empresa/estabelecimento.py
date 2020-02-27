@@ -31,7 +31,7 @@ class EstabelecimentoResource(EmpresaResource):
     def get(self, cnpj):
         ''' Obtém todos os datasets da empresa '''
         if self.is_invalid_id(cnpj):
-            return 400, 'Cnpj inválido (deve ter 14 caracteres exclusivamente numéricos'
+            return 400, 'Cnpj inválido (deve ter 14 caracteres exclusivamente numéricos)'
         options = request.args.copy()
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')

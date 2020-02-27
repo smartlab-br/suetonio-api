@@ -78,7 +78,7 @@ class EmpresaResource(BaseResource):
     def get(self, cnpj_raiz):
         ''' Obtém todos os datasets da empresa '''
         if self.is_invalid_id(cnpj_raiz):
-            return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos'
+            return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos)'
         options = request.args.copy()
         options['id_inv'] = cnpj_raiz
         options = self.build_person_options(options)
@@ -114,7 +114,7 @@ class EmpresaResource(BaseResource):
     def post(self, cnpj_raiz):
         ''' Requisita uma nova análise de uma empresa '''
         if self.is_invalid_id(cnpj_raiz):
-            return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos'
+            return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos)'
         try:
             self.get_domain().produce(cnpj_raiz)
             return 'Análise em processamento', 201
