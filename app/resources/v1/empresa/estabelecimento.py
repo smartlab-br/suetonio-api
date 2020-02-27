@@ -30,6 +30,8 @@ class EstabelecimentoResource(EmpresaResource):
     })
     def get(self, cnpj):
         ''' Obtém todos os datasets da empresa '''
+        if self.is_invalid_id(cnpj):
+            return 400, 'Cnpj inválido (deve ter 14 caracteres exclusivamente numéricos)'
         options = request.args.copy()
         options['id_inv'] = cnpj
         options = self.build_person_options(options, mod='estabelecimento')
@@ -45,3 +47,9 @@ class EstabelecimentoResource(EmpresaResource):
             return "Não foi possível incluir a análise na fila. Tente novamente mais tarde", 504
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 400
+
+    def is_invalid_id(self, cnpj):
+        ''' Checks if the ID is valid '''
+        if len(cnpj) != 14 or not cnpj.isdecimal():
+            return True
+        return False # Doesn't block if no error is found
