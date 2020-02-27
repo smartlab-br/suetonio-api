@@ -136,6 +136,6 @@ class EmpresaResource(BaseResource):
 
     def is_invalid_id(self, cnpj_raiz):
         ''' Checks if the ID is valid '''
-        if len(cnpj_raiz) != 8 and not cnpj_raiz.isdecimal():
+        if len(cnpj_raiz) != 8 or not cnpj_raiz.isdecimal():
             return True
         return False # Doesn't block if no error is found

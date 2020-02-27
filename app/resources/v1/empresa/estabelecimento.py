@@ -50,6 +50,6 @@ class EstabelecimentoResource(EmpresaResource):
 
     def is_invalid_id(self, cnpj):
         ''' Checks if the ID is valid '''
-        if len(cnpj) != 14 and not cnpj.isdecimal():
+        if len(cnpj) != 14 or not cnpj.isdecimal():
             return True
         return False # Doesn't block if no error is found
