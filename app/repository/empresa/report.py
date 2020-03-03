@@ -17,6 +17,11 @@ class ReportRepository(RedisRepository):
         if report is None or report == '':
             redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(cnpj_raiz))
             print(redis_report_status)
+            try:
+                redis_report_status = redis_report_status.decode()
+            except (UnicodeDecodeError, AttributeError):
+                pass
+            print(redis_report_status)
             if redis_report_status is not None and redis_report_status != '':
                 print(">> N")
                 if redis_report_status == 'PROCESSING':
