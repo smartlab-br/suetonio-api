@@ -26,7 +26,7 @@ class ReportResource(EmpresaResource):
         if self.is_invalid_id(cnpj_raiz):
             return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos)'
         content = self.get_domain().find_report(cnpj_raiz)
-        rsp_code = {'FAILED': 201, 'PROCESSING': 204, 'NOTFOUND': 201}
+        rsp_code = {'FAILED': 202, 'PROCESSING': 204, 'NOTFOUND': 202}
         if isinstance(content, dict):
             return '', rsp_code[content['status']]
         return Response(content, mimetype='text/html')
@@ -44,7 +44,7 @@ class ReportResource(EmpresaResource):
         if self.is_invalid_id(cnpj_raiz):
             return 400, 'Cnpj raiz inválido (deve ter 8 caracteres exclusivamente numéricos)'
         try:
-            return self.get_domain().generate(cnpj_raiz), 202
+            return self.get_domain().generate(cnpj_raiz), 201
         except TimeoutError:
             return "Falha na gravação do dicionário", 504
         except (AttributeError, KeyError, ValueError) as err:
