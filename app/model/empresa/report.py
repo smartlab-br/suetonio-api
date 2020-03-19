@@ -27,32 +27,36 @@ class Report(Empresa):
 
     def find_report(self, cnpj_raiz):
         ''' Localiza report pelo CNPJ Raiz '''
-        report = self.get_repo().find_report(cnpj_raiz)
-        # If no report is found, checks REDIS status
-        if report is None or report == '': # After change in redis status keys, move the report fetching to occur after status check
-            redis_report_status = self.check_status()
-            if redis_report_status is not None and redis_report_status != '':
-                if redis_report_status == 'SUCCESS':
-                    report = self.get_repo().find_report(cnpj_raiz)
-                    if report is None or report == '':
-                        self.store(cnpj_raiz)
-                        return {'status': 'RENEWING'}
-                    return report
-                if redis_report_status == 'PROCESSING':
-                    # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
-                    return {'status': redis_report_status}
-                if redis_report_status in ['FAILED', 'RENEWING', 'UNLOCKING']:
-                    # If failed, produces report item in Kafka an sends back the failed status
+        redis_report_status = self.check_status(cnpj_raiz)
+        if redis_report_status is not None and redis_report_status != '':
+            if redis_report_status == 'SUCCESS':
+                report = self.get_repo().find_report(self.REDIS_KEY.format(cnpj_raiz))
+                if report is None or report == '':
                     self.store(cnpj_raiz)
-                    return {'status': redis_report_status}
-            # In any other case, responds as not found
-            self.store(cnpj_raiz)
-            return {'status': "NOTFOUND"}
-        return report
+                    return {'status': 'RENEWING'}
+                return report
+            if redis_report_status == 'PROCESSING':
+                # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
+                return {'status': redis_report_status}
+            if redis_report_status in ['FAILED', 'RENEWING', 'UNLOCKING']:
+                # If failed, produces report item in Kafka an sends back the failed status
+                self.store(cnpj_raiz)
+                return {'status': redis_report_status}
+            else :
+                # In any other case, responds as not found
+                self.store(cnpj_raiz)
+                return {'status': "NOTFOUND"}
+        else:
+            report = self.get_repo().find_report(self.REDIS_KEY.format(cnpj_raiz))
+            if report is None or report == '':
+                self.generate(cnpj_raiz)
+                return {'status': "NOTFOUND"}
+            else:
+                self.update_status(cnpj_raiz, "SUCCESS")
+                return report
 
     def generate(self, cnpj_raiz):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''
-        reqtime = datetime.now()
         # Restart status from REDIS
         self.update_status(cnpj_raiz, "PROCESSING")
         try:
@@ -62,20 +66,21 @@ class Report(Empresa):
 
     def update_status(self, cnpj_raiz, status):
         ''' Updates status in REDIS '''
-        for st in status:
+        reqtime = datetime.now()
+        for st in self.STATUS:
             if st == status:
-                self.get_dao().set(self.REDIS_STATUS_KEY.format(st, cnpj_raiz), reqtime.strftime("%Y-%m-%d %H:%M:%S"))
+                self.get_repo().store_status(self.REDIS_STATUS_KEY.format(st, cnpj_raiz), reqtime.strftime("%Y-%m-%d %H:%M:%S"))
             else:
                 # Removes old status from REDIS
                 try:
-                    self.get_dao().delete(self.REDIS_STATUS_KEY.format(st, cnpj_raiz))
+                    self.get_repo().del_status(self.REDIS_STATUS_KEY.format(st, cnpj_raiz))
                 except:
                     continue
 
-    def check_status(self, cnpj_raiz, status):
+    def check_status(self, cnpj_raiz):
         ''' Checks the status or if the report should be updated '''
-        for st in status:
-            redis_report_status = self.get_dao().get(self.REDIS_STATUS_KEY.format(st, cnpj_raiz))
+        for st in self.STATUS:
+            redis_report_status = self.get_repo().find_status(self.REDIS_STATUS_KEY.format(st, cnpj_raiz))
             # Decodes if status is stored as binary
             try:
                 redis_report_status = redis_report_status.decode()
