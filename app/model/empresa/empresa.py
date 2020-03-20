@@ -15,7 +15,7 @@ class Empresa(BaseModel):
         'rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios',
         'rfbparticipacaosocietaria', 'aeronaves', 'renavam'
     ]
-
+    
     def __init__(self):
         ''' Construtor '''
         self.repo = None
