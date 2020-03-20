@@ -25,7 +25,7 @@ class ReportRepository(RedisRepository):
 
     def find_status(self, key):
         ''' Get status from REDIS '''
-        self.get_dao().get(key)
+        return self.get_dao().get(key)
 
     def del_status(self, key):
         ''' Removes key from REDIS '''
