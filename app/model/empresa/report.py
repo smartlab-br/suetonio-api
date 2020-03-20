@@ -80,10 +80,6 @@ class Report(Empresa):
         for st in self.STATUS:
             redis_report_status = self.get_repo().find_status(self.REDIS_STATUS_KEY.format(st, cnpj_raiz))
             # Decodes if status is stored as binary
-            try:
-                redis_report_status = redis_report_status.decode()
-            except (UnicodeDecodeError, AttributeError):
-                pass
             if redis_report_status is None:
                 continue
             if st == 'PROCESSING' and (datetime.now() - datetime.strptime(redis_report_status, "%Y-%m-%d %H:%M:%S")).days > 1:
