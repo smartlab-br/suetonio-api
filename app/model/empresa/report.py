@@ -32,28 +32,26 @@ class Report(Empresa):
             if redis_report_status == 'SUCCESS':
                 report = self.get_repo().find_report(self.REDIS_KEY.format(cnpj_raiz))
                 if report is None or report == '':
-                    self.store(cnpj_raiz)
+                    self.generate(cnpj_raiz)
                     return {'status': 'RENEWING'}
                 return report
             if redis_report_status == 'PROCESSING':
                 # When there's a no success status in REDIS (PROCESSING, FAILED), returns status
                 return {'status': redis_report_status}
+            # In any other case, sends to reprocessing
+            self.generate(cnpj_raiz)
             if redis_report_status in ['FAILED', 'RENEWING', 'UNLOCKING']:
                 # If failed, produces report item in Kafka an sends back the failed status
-                self.store(cnpj_raiz)
                 return {'status': redis_report_status}
-            else :
-                # In any other case, responds as not found
-                self.store(cnpj_raiz)
-                return {'status': "NOTFOUND"}
-        else:
-            report = self.get_repo().find_report(self.REDIS_KEY.format(cnpj_raiz))
-            if report is None or report == '':
-                self.generate(cnpj_raiz)
-                return {'status': "NOTFOUND"}
-            else:
-                self.update_status(cnpj_raiz, "SUCCESS")
-                return report
+            # In any other case, responds as not found
+            return {'status': "NOTFOUND"}
+        # If no status is found
+        report = self.get_repo().find_report(self.REDIS_KEY.format(cnpj_raiz))
+        if report is None or report == '':
+            self.generate(cnpj_raiz)
+            return {'status': "NOTFOUND"}
+        self.update_status(cnpj_raiz, "SUCCESS")
+        return report
 
     def generate(self, cnpj_raiz):
         ''' Inclui/atualiza dicionário de competências e datasources no REDIS '''
