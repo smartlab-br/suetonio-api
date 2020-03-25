@@ -13,7 +13,7 @@ class Empresa(BaseModel):
     ''' Definição do repo '''
     TOPICS = [
         'rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios',
-        'rfbparticipacaosocietaria', 'aeronaves', 'renavam'
+        'rfbparticipacaosocietaria', 'aeronaves', 'renavam', 'cagedsaldo'
     ]
     
     def __init__(self):
