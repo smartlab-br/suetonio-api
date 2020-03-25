@@ -10,6 +10,7 @@ class EmpresaRepository(HBaseRepository):
         'aeronaves': 'proprietario_cpfcnpj',
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
+        'cagedsaldo': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
         'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cnpj',
