@@ -65,8 +65,9 @@ class Empresa(BaseModel):
             # First, updates status on REDIS
             redis_dao.store_status(cnpj_raiz, topic, ds_dict[topic].split(','))
             # Then publishes to Kafka
-            t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
-            producer.send(t_name, msg)
+            for comp in ds_dict[topic].split(','):
+                t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
+                producer.send(t_name, f'{msg}:{comp}')
         producer.close()
 
     def get_loading_entry(self, cnpj_raiz, options=None):
