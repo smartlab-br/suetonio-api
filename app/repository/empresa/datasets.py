@@ -10,7 +10,7 @@ class DatasetsRepository(RedisRepository):
         'rfb': '2018',
         'sisben': '2018',
         'catweb': '2018,2017',
-        'auto': '2018',
+        'auto': ','.join([str(ano) for ano in range(2019,2001, -1)]),
         'caged': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2019,2008, -1) for mes in range(12, 0, -1) if not (ano == 2019 and mes > 9)]),
         'cagedsaldo': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2019,2008, -1) for mes in range(12, 0, -1) if not (ano == 2019 and mes > 9)]),
         'rfbsocios': '2018',
