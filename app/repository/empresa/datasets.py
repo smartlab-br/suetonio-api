@@ -13,6 +13,8 @@ class DatasetsRepository(RedisRepository):
         'auto': ','.join([str(ano) for ano in range(2019,2001, -1)]),
         'caged': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2019,2008, -1) for mes in range(12, 0, -1) if not (ano == 2019 and mes > 9)]),
         'cagedsaldo': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2019,2008, -1) for mes in range(12, 0, -1) if not (ano == 2019 and mes > 9)]),
+        'cagedtrabalhador': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2019,2002, -1) for mes in range(12, 0, -1) if not (ano == 2019 and mes > 9)]),
+        'cagedtrabalhadorano': ','.join([str(ano) for ano in range(2019,2002, -1)]),
         'rfbsocios': '2018',
         'rfbparticipacaosocietaria': '2018',
         'renavam': '2018',
