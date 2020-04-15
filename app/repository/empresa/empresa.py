@@ -11,6 +11,8 @@ class EmpresaRepository(HBaseRepository):
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
         'cagedsaldo': 'cnpj_cei',
+        'cagedtrabalhador': 'cnpj_cei',
+        'cagedtrabalhadorano': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
         'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cnpj',
@@ -18,6 +20,8 @@ class EmpresaRepository(HBaseRepository):
     } # Dados que possuem nomes diferentes para a coluna de cnpj
     PF_COLUMNS = {
         'aeronaves': 'proprietario_cpfcnpj',
+        'cagedtrabalhador': 'cpf',
+        'cagedtrabalhadorano': 'cpf',
         'catweb': 'nu_nit',
         'rais': 'nu_cpf',
         'renavam': 'proprietario_cpfcnpj',
