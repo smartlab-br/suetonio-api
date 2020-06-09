@@ -13,9 +13,10 @@ class Empresa(BaseModel):
     ''' Definição do repo '''
     TOPICS = [
         'rais', 'rfb', 'sisben', 'catweb', 'auto', 'caged', 'rfbsocios',
-        'rfbparticipacaosocietaria', 'aeronaves', 'renavam'
+        'rfbparticipacaosocietaria', 'aeronaves', 'renavam', 'cagedsaldo',
+        'cagedtrabalhador', 'cagedtrabalhadorano'
     ]
-
+    
     def __init__(self):
         ''' Construtor '''
         self.repo = None
@@ -57,7 +58,6 @@ class Empresa(BaseModel):
     def produce(self, cnpj_raiz):
         ''' Gera uma entrada na fila para ingestão de dados da empresa '''
         kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
-        msg = bytes(cnpj_raiz, 'utf-8')
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         redis_dao = PessoaDatasetsRepository()
         ds_dict = DatasetsRepository().DATASETS
@@ -65,8 +65,10 @@ class Empresa(BaseModel):
             # First, updates status on REDIS
             redis_dao.store_status(cnpj_raiz, topic, ds_dict[topic].split(','))
             # Then publishes to Kafka
-            t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
-            producer.send(t_name, msg)
+            for comp in ds_dict[topic].split(','):
+                t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
+                msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
+                producer.send(t_name, msg)
         producer.close()
 
     def get_loading_entry(self, cnpj_raiz, options=None):
