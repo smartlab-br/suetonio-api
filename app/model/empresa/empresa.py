@@ -48,26 +48,42 @@ class Empresa(BaseModel):
                 result['dataset'] = dataset
         except requests.exceptions.HTTPError:
             loading_entry_is_valid = False
-            self.produce(options['cnpj_raiz'])
+            self.produce(
+                options['cnpj_raiz'],
+                options.get('column_family'),
+                options.get('column')
+            )
         if not loading_entry_is_valid:
             result['invalid'] = True
         if 'column' in options:
             result['status_competencia'] = column_status
         return result
 
-    def produce(self, cnpj_raiz):
+    def produce(self, cnpj_raiz, column, column_family):
         ''' Gera uma entrada na fila para ingestão de dados da empresa '''
         kafka_server = f'{current_app.config["KAFKA_HOST"]}:{current_app.config["KAFKA_PORT"]}'
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         redis_dao = PessoaDatasetsRepository()
         ds_dict = DatasetsRepository().DATASETS
-        for topic in self.TOPICS:
-            # First, updates status on REDIS
-            redis_dao.store_status(cnpj_raiz, topic, ds_dict[topic].split(','))
-            # Then publishes to Kafka
-            for comp in ds_dict[topic].split(','):
-                t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
-                msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
+        if column is None:
+            for topic in self.TOPICS:
+                # First, updates status on REDIS
+                redis_dao.store_status(cnpj_raiz, topic, ds_dict[topic].split(','))
+                # Then publishes to Kafka
+                for comp in ds_dict[topic].split(','):
+                    t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
+                    msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
+                    producer.send(t_name, msg)
+        else:
+            if column_family is None:
+                # Then publishes to Kafka
+                for comp in ds_dict[column_family].split(','):
+                    t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{column_family}'
+                    msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
+                    producer.send(t_name, msg)
+            else:
+                t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{column_family}'
+                msg = bytes(f'{cnpj_raiz}:{column}', 'utf-8')
                 producer.send(t_name, msg)
         producer.close()
 
@@ -103,9 +119,9 @@ class Empresa(BaseModel):
                 column_status = self.assess_column_status(
                     slot_list.split(','),
                     columns_available,
-                    options['column']
+                    options[.get('column')
                 )
-                if options['column_family'] == dataframe:
+                if options.get('column_family') == dataframe:
                     column_status_specific = column_status
 
         # Overrides if there's a specific column status
@@ -122,6 +138,6 @@ class Empresa(BaseModel):
                 return columns_available[column]
             return 'MISSING'
         if (column in columns_available.keys() and
-                columns_available[column] == 'INGESTED'):
+                'INGESTED' in columns_available[column]):
             return 'DEPRECATED'
         return 'UNAVAILABLE'
