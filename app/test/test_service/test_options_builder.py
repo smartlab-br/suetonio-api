@@ -32,6 +32,7 @@ class OptionsBuilderTest(unittest.TestCase):
                 "valor": ['c', 'd'],
                 "agregacao": ['e', 'f'],
                 "ordenacao": ['g', 'h'],
+                "filtros": r'eq-o-comma\,separated,and,eq-p-q',
                 "where": ['eq-o-comma,separated', 'and', 'eq-p-q'],
                 "pivot": ['i', 'j'],
                 "limit": '10',
@@ -49,7 +50,7 @@ class PersonOptionsBuilderTest(unittest.TestCase):
             "dados": 'a',
             "competencia": 'b',
             "id_pf": '12345678900',
-            "perspectiva": 'c',
+            "perspective": 'c',
             "only_meta": 'S',
             "reduzido": 'S',
             "id_inv": '00000000'
@@ -76,7 +77,7 @@ class PersonOptionsBuilderTest(unittest.TestCase):
             "dados": 'a',
             "competencia": 'b',
             "id_pf": '12345678900',
-            "perspectiva": 'c',
+            "perspective": 'c',
             "only_meta": 'S',
             "reduzido": 'S',
             "id_inv": '00000000000000'
