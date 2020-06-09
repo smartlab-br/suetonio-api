@@ -1,5 +1,3 @@
-ENTRYPOINT ["sh", "/start.sh"]
-
 FROM smartlab/flask-dataviz:latest
 LABEL maintainer="smartlab-dev@mpt.mp.br"
 
