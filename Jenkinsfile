@@ -52,7 +52,7 @@ pipeline {
 
 def img_parent_pull() {
     //pull img docker
-    def img_flask = docker.image('smartlab/flask:latest')
+    def img_flask = docker.image('smartlab/flask-dataviz:latest')
     img_flask.pull()
 }
 
