@@ -102,27 +102,34 @@ class Empresa(BaseModel):
         column_status = 'INGESTED'
         column_status_specific = None
         for dataframe, slot_list in rules_dao.DATASETS.items():
-            columns_available = loading_status_dao.retrieve(cnpj_raiz, dataframe)
+            if options.get('column_family', dataframe) == dataframe:
+                columns_available = loading_status_dao.retrieve(cnpj_raiz, dataframe)
 
-            # Aquela entrada já existe no REDIS (foi carregada)?
-            # A entrada é compatível com o rol de datasources?
-            # A entrada tem menos de 1 mês?
-            if (columns_available is None or
-                    any([slot not in columns_available.keys() for slot in slot_list.split(',')]) or
-                    ('when' in columns_available and (datetime.strptime(
-                        columns_available['when'], "%Y-%m-%d") - datetime.now()).days > 30)):
-                is_valid = False
-            if columns_available:
-                loading_entry[dataframe] = columns_available
+                # Aquela entrada já existe no REDIS (foi carregada)?
+                # A entrada é compatível com o rol de datasources?
+                # A entrada tem menos de 1 mês?
+                if (columns_available is None or
+                        any([slot not in columns_available.keys() for slot in slot_list.split(',')])):
+                    is_valid = False
+                else:
+                    for col_key, col_val in columns_available.items():
+                        if (options.get('column', col_key) == col_key and
+                                'INGESTED' in col_val and
+                                len(col_val.split('|') > 1) and
+                                (datetime.strptime(col_val.split('|')[1], "%Y-%m-%d") - datetime.now()).days > 30):
+                            is_valid = False
+                
+                if columns_available:
+                    loading_entry[dataframe] = columns_available
 
-            if 'column' in options:
-                column_status = self.assess_column_status(
-                    slot_list.split(','),
-                    columns_available,
-                    options[.get('column')
-                )
-                if options.get('column_family') == dataframe:
-                    column_status_specific = column_status
+                if 'column' in options:
+                    column_status = self.assess_column_status(
+                        slot_list.split(','),
+                        columns_available,
+                        options.get('column')
+                    )
+                    if options.get('column_family') == dataframe:
+                        column_status_specific = column_status
 
         # Overrides if there's a specific column status
         if column_status_specific is not None:
