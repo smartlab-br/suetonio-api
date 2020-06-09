@@ -10,6 +10,9 @@ class EmpresaRepository(HBaseRepository):
         'aeronaves': 'proprietario_cpfcnpj',
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
+        'cagedsaldo': 'cnpj_cei',
+        'cagedtrabalhador': 'cnpj_cei',
+        'cagedtrabalhadorano': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
         'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cnpj',
@@ -17,6 +20,8 @@ class EmpresaRepository(HBaseRepository):
     } # Dados que possuem nomes diferentes para a coluna de cnpj
     PF_COLUMNS = {
         'aeronaves': 'proprietario_cpfcnpj',
+        'cagedtrabalhador': 'cpf',
+        'cagedtrabalhadorano': 'cpf',
         'catweb': 'nu_nit',
         'rais': 'nu_cpf',
         'renavam': 'proprietario_cpfcnpj',
@@ -25,7 +30,15 @@ class EmpresaRepository(HBaseRepository):
         'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
     } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
     PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
-        'catweb': 'origem'
+        'catweb': 'origem_busca'
+    }
+    PERSP_VALUES = {
+        'catweb': {
+            'empregador': 'Empregador',
+            'tomador': 'Tomador',
+            'empregador_concessao': 'Empregador Concessão',
+            'empregador_aeps': 'Empregador AEPS'
+        }
     }
     SIMPLE_COLUMNS = {}
 
@@ -40,6 +53,18 @@ class EmpresaRepository(HBaseRepository):
             )
             metadata = {}
 
+            # Result splitting according to perspectives
+            nu_results = {}
+            for ds_key in result:
+                if not result[ds_key].empty and ds_key in self.PERSP_COLUMNS:
+                    for nu_persp_key, nu_persp_val in self.PERSP_VALUES[ds_key].items():
+                        if options.get('perspective', nu_persp_key) == nu_persp_key:
+                            nu_key = ds_key + "_" + nu_persp_key
+                            nu_results[nu_key] = result[ds_key][
+                                result[ds_key][self.PERSP_COLUMNS[ds_key]] == nu_persp_val
+                            ]
+            result = {**result, **nu_results}
+
             for ds_key in result:
                 col_cnpj_name = 'cnpj'
                 if ds_key in self.CNPJ_COLUMNS:
@@ -52,12 +77,6 @@ class EmpresaRepository(HBaseRepository):
                     result[ds_key] = self.filter_by_person(
                         result[ds_key], options, col_cnpj_name, col_pf_name
                     )
-
-                if (not result[ds_key].empty and options.get('perspective') is not None and
-                        ds_key in self.PERSP_COLUMNS):
-                    result[ds_key] = result[ds_key][
-                        result[ds_key][self.PERSP_COLUMNS[ds_key]] == options['perspective']
-                    ]
 
                 # Redução de dimensionalidade (simplified)
                 if not result[ds_key].empty and options.get('simplified'):
