@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 from kafka import KafkaProducer
 from flask import current_app
+from flask import request
 from model.base import BaseModel
 from model.empresa.datasets import DatasetsRepository
 from repository.empresa.empresa import EmpresaRepository
@@ -65,7 +66,7 @@ class Empresa(BaseModel):
         producer = KafkaProducer(bootstrap_servers=[kafka_server])
         redis_dao = PessoaDatasetsRepository()
         ds_dict = DatasetsRepository().DATASETS
-        print('no produce')
+        refresh_varnish = False
         if column_family is None:
             for topic in self.TOPICS:
                 # First, updates status on REDIS
@@ -75,6 +76,7 @@ class Empresa(BaseModel):
                     t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{topic}'
                     msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
                     producer.send(t_name, msg)
+                    refresh_varnish = True
         else:
             if column is None:
                 # First, updates status on REDIS
@@ -84,13 +86,22 @@ class Empresa(BaseModel):
                     t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{column_family}'
                     msg = bytes(f'{cnpj_raiz}:{comp}', 'utf-8')
                     producer.send(t_name, msg)
+                    refresh_varnish = True
             else:
                 # First, updates status on REDIS
                 redis_dao.store_status(cnpj_raiz, column_family, [column])
                 t_name = f'{current_app.config["KAFKA_TOPIC_PREFIX"]}-{column_family}'
                 msg = bytes(f'{cnpj_raiz}:{column}', 'utf-8')
                 producer.send(t_name, msg)
+                refresh_varnish = True
         producer.close()
+        if refresh_varnish:
+            print(request.base_url)
+            resp = requests.request(
+                "PURGE",
+                request.base_url,
+                headers={"X-Purge-Regex" : ".*"}
+            )
 
     def get_loading_entry(self, cnpj_raiz, options=None):
         ''' Verifica se há uma entrada ainda válida para ingestão de dados da empresa '''
