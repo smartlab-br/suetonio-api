@@ -2,7 +2,7 @@
 class QueryOptionsBuilder():
     ''' Classe de serviço '''
     @classmethod
-    def build_options(cls, r_args):
+    def build_options(cls, r_args, rules = 'query'):
         ''' Constrói as opções da pesquisa '''
         options = r_args.copy()
 

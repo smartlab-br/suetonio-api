@@ -9,7 +9,6 @@ reports/*.xml
 .app/test/coverage/coverage.xml
 app/test/report.xml
 app/.scannerwork
-requirements.txt
 start.sh
 **/__pycache__
 setenv.sh
