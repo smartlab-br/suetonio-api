@@ -9,5 +9,6 @@ RUN pip3 install -r /app/requirements.txt
 USER uwsgi
 
 COPY app /app/
+COPY uwsgi.ini /etc/uwsgi/
 
 ENTRYPOINT ["sh", "/start.sh"]
