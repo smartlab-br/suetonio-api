@@ -55,6 +55,7 @@ api.add_resource(MunicipioResource, '/municipio/<int:cd_municipio_ibge>')
 
 # Endpoints para obter datasets de empresa e estabelecimento
 api.add_resource(EmpresaResource, '/empresa/<string:cnpj_raiz>')
+api.add_resource(EmpresaResource, '/estatisticas/empresa/<string:cnpj_raiz>')
 api.add_resource(EstabelecimentoResource, '/estabelecimento/<string:cnpj>')
 
 ## Endpoints temáticos

@@ -22,6 +22,53 @@ class BaseRepository():
     VAL_FIELD = 'vl_indicador'
     DEFAULT_GROUPING = 'nu_competencia, cd_indicador'
     DEFAULT_PARTITIONING = 'cd_indicador'
+    CNPJ_RAIZ_COLUMNS = {}
+    CNPJ_COLUMNS = {
+        'aeronaves': 'proprietario_cpfcnpj',
+        'auto': 'nrinscricao',
+        'caged': 'cnpj_cei',
+        'cagedsaldo': 'cnpj_cei',
+        'cagedtrabalhador': 'cnpj_cei',
+        'cagedtrabalhadorano': 'cnpj_cei',
+        'rais': 'nu_cnpj_cei',
+        'renavam': 'proprietario_cpfcnpj',
+        'rfb': 'nu_cnpj',
+        'sisben': 'nu_cnpj'
+    } # Dados que possuem nomes diferentes para a coluna de cnpj
+    COMPET_COLUMNS = { # TODO 1 - Set appropriate timeframe column to each dataframe
+        'aeronaves': 'proprietario_cpfcnpj',
+        'auto': 'nrinscricao',
+        'caged': 'cnpj_cei',
+        'cagedsaldo': 'cnpj_cei',
+        'cagedtrabalhador': 'cnpj_cei',
+        'cagedtrabalhadorano': 'cnpj_cei',
+        'rais': 'nu_cnpj_cei',
+        'renavam': 'proprietario_cpfcnpj',
+        'rfb': 'nu_cnpj',
+        'sisben': 'nu_cnpj'
+    }
+    PF_COLUMNS = {
+        'aeronaves': 'proprietario_cpfcnpj',
+        'cagedtrabalhador': 'cpf',
+        'cagedtrabalhadorano': 'cpf',
+        'catweb': 'nu_nit',
+        'rais': 'nu_cpf',
+        'renavam': 'proprietario_cpfcnpj',
+        'rfb': 'nu_cpf_responsavel',
+        'rfbsocios': 'cnpj_cpf_socio',
+        'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
+    } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
+    PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
+        'catweb': 'origem_busca'
+    }
+    PERSP_VALUES = {
+        'catweb': {
+            'empregador': 'Empregador',
+            'tomador': 'Tomador',
+            'empregador_concessao': 'Empregador Concessão',
+            'empregador_aeps': 'Empregador AEPS'
+        }
+    }
     CALCS_DICT = {
         "min_part": 'MIN({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}',
         "max_part": 'MAX({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}',
@@ -82,6 +129,28 @@ class BaseRepository():
         if self.dao is None:
             self.load_and_prepare()
         return self.dao
+
+    def get_column_defs(self, table_name):
+        ''' Get the column definitions from a dataframe ''''
+        return {
+            'cnpj_raiz': self.CNPJ_RAIZ_COLUMNS.get(table_name, 'cnpj_raiz'),
+            'cnpj': self.CNPJ_COLUMNS.get(table_name, 'cnpj'),
+            'pf': self.PF_COLUMNS.get(table_name, 'cpf'),
+            'persp': self.PF_COLUMNS.get(table_name),
+            'compet': self.COMPET_COLUMNS.get(table_name)
+        }
+
+class HadoopRepository(BaseRepository):
+    '''Generic class for hive/impala repositories '''
+    def load_and_prepare(self):
+        ''' Método abstrato para carregamento do dataset '''
+        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
+
+    def fetch_data(self, query):
+        ''' Runs the query in pandas '''
+        cursor = self.get_dao().cursor()
+        cursor.execute(query)
+        return as_pandas(cursor)
 
     @staticmethod
     def build_agr_array(valor=None, agregacao=None):
@@ -368,18 +437,6 @@ class BaseRepository():
         ''' Proxy for Query Builder function call '''
         return QueryBuilder.get_agr_string(agregacao, valor)
 
-class HadoopRepository(BaseRepository):
-    '''Generic class for hive/impala repositories '''
-    def load_and_prepare(self):
-        ''' Método abstrato para carregamento do dataset '''
-        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
-
-    def fetch_data(self, query):
-        ''' Runs the query in pandas '''
-        cursor = self.get_dao().cursor()
-        cursor.execute(query)
-        return as_pandas(cursor)
-
     def find_dataset(self, options=None):
         ''' Obtém dataset de acordo com os parâmetros informados '''
         if QueryBuilder.catch_injection(options):
@@ -455,8 +512,12 @@ class ImpalaRepository(HadoopRepository):
         ''' Prepara o DAO '''
         self.dao = get_impala_connection()
 
-class HBaseRepository():
+class HBaseRepository(BaseRepository):
     ''' HBase connector class '''
+    def load_and_prepare(self): # No DAO - http request
+        ''' Prepara o DAO '''
+        pass
+
     @staticmethod
     def fetch_data(table, key, column_family, column):
         ''' Gets data from HBase instance '''

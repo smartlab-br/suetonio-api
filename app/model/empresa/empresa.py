@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 from kafka import KafkaProducer
 from flask import current_app
+from model.thematic import Thematic
 from model.base import BaseModel
 from model.empresa.datasets import DatasetsRepository
 from repository.empresa.empresa import EmpresaRepository
@@ -151,3 +152,76 @@ class Empresa(BaseModel):
                 'INGESTED' in columns_available[column]):
             return 'DEPRECATED'
         return 'UNAVAILABLE'
+    
+    def get_statistics(self, options):
+        ''' Gets statistics for a company using impala '''
+        print(options)
+        if options.get('dados'):
+            dataframes = [options.get('dados')]
+        else:
+            dataframes = self.TOPICS # TODO 1 - Check if tables and topics names match
+
+        # TODO 99 - Add threads to run impala queries
+        result = {}
+        for df in dataframes:
+            # Get statistics for dataset
+            thematic_handler = Thematic()
+            cols = thematic_handler.get_column_defs(df)
+            subset_rules = [f"eq-{cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}"]
+            if options.get('cnpj'): # Add cnpj filter
+                subset_rules.append(f"eq-{cols.get('cnpj')}-{options.get('cnpj')}")
+            if options.get('id_pf'): # Add pf filter
+                subset_rules.append(f"eq-{cols.get('pf')}-{options.get('id_pf')}")
+            
+            local_options = {
+                "categorias": [col_cnpj_raiz],
+                "agregacao": ['count'],
+                "where": subset_rules,
+                "theme": df
+            }
+            result[df] = { 
+                "stats": json.loads(thematic_handler.find_dataset(local_options).to_json(orient="index")
+            }
+
+            result[df] = {**result[df], **self.get_grouped_stats(local_options, cols)}
+            if options.get('perspective') and thematic_handler.PERSP_VALUES.get(df):
+                local_result = {}
+                for each_persp_key, each_persp_value in thematic_handler.PERSP_VALUES.get(df):
+                    local_options["where"].append(f"eq-{thematic_handler.PERSP_COLUMNS.get(df)}-{each_persp_value}")
+                    local_result[each_persp] = self.get_grouped_stats(local_options, cols, each_persp) 
+                result[df][f"stats_{each_persp}"] = {**result[df], **local_result}
+        return result
+        
+    @staticmethod
+    def get_grouped_stats(options, cols):
+        ''' Get stats for dataframe partitions '''
+        result = {}
+
+        # Get statistics partitioning by timeframe
+        options["categorias"] = [cols.get('compet')]
+        options["ordenacao"] = [f"-{cols.get('compet')}"]
+        result[df]["stats_compet"] = json.loads(thematic_handler.find_dataset(options).to_json(orient="index")
+
+        # Get statistics partitioning by unit
+        options["categorias"] = [cols.get('cnpj')]
+        options["ordenacao"] = [cols.get('cnpj')]
+        result[df]["stats_estab"] = json.loads(thematic_handler.find_dataset(options).to_json(orient="index")
+
+        # Get statistics partitioning by unit and timeframe
+        options["categorias"] = [cols.get('cnpj'), cols.get('compet')]
+        options["ordenacao"] = [f"-{cols.get('compet')}"]
+        result[df]["stats_estab_compet"] = json.loads(thematic_handler.find_dataset(options).to_json(orient="index")
+    
+        ## RETIRADO pois a granularidade torna imviável a performance
+        # metadata['stats_pf'] = dataframe[
+        #     [col_pf_name, 'col_compet']
+        # ].groupby(col_pf_name).describe(include='all')
+
+        ## RETIRADO pois a granularidade torna inviável a performance
+        # metadata['stats_pf_compet'] = dataframe[
+        #     [col_pf_name, 'col_compet']
+        # ].groupby(
+        #     ['col_compet', col_cnpj_name]
+        # ).describe(include='all')
+
+        return result

@@ -6,40 +6,6 @@ from repository.base import HBaseRepository
 class EmpresaRepository(HBaseRepository):
     ''' Definição do repo '''
     TABLE = 'sue'
-    CNPJ_COLUMNS = {
-        'aeronaves': 'proprietario_cpfcnpj',
-        'auto': 'nrinscricao',
-        'caged': 'cnpj_cei',
-        'cagedsaldo': 'cnpj_cei',
-        'cagedtrabalhador': 'cnpj_cei',
-        'cagedtrabalhadorano': 'cnpj_cei',
-        'rais': 'nu_cnpj_cei',
-        'renavam': 'proprietario_cpfcnpj',
-        'rfb': 'nu_cnpj',
-        'sisben': 'nu_cnpj'
-    } # Dados que possuem nomes diferentes para a coluna de cnpj
-    PF_COLUMNS = {
-        'aeronaves': 'proprietario_cpfcnpj',
-        'cagedtrabalhador': 'cpf',
-        'cagedtrabalhadorano': 'cpf',
-        'catweb': 'nu_nit',
-        'rais': 'nu_cpf',
-        'renavam': 'proprietario_cpfcnpj',
-        'rfb': 'nu_cpf_responsavel',
-        'rfbsocios': 'cnpj_cpf_socio',
-        'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
-    } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
-    PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
-        'catweb': 'origem_busca'
-    }
-    PERSP_VALUES = {
-        'catweb': {
-            'empregador': 'Empregador',
-            'tomador': 'Tomador',
-            'empregador_concessao': 'Empregador Concessão',
-            'empregador_aeps': 'Empregador AEPS'
-        }
-    }
     SIMPLE_COLUMNS = {}
 
     def find_datasets(self, options):
@@ -129,57 +95,59 @@ class EmpresaRepository(HBaseRepository):
         if dataframe is None:
             return None
 
-        result = {
-            'stats': json.loads(dataframe.describe(include='all').to_json(orient="index"))
-        }
+        # result = {
+        #     'stats': json.loads(dataframe.describe(include='all').to_json(orient="index"))
+        # }
 
-        if dataframe.empty:
-            return result
+        # if dataframe.empty:
+        #     return result
 
-        stats_estab = dataframe.groupby(col_cnpj_name).describe(include='all')
-        stats_estab.columns = [
-            "_".join(col).strip()
-            for
-            col
-            in
-            stats_estab.columns.values
-        ]
-        result['stats_estab'] = json.loads(
-            stats_estab.to_json(orient="index")
-        )
+        # stats_estab = dataframe.groupby(col_cnpj_name).describe(include='all')
+        # stats_estab.columns = [
+        #     "_".join(col).strip()
+        #     for
+        #     col
+        #     in
+        #     stats_estab.columns.values
+        # ]
+        # result['stats_estab'] = json.loads(
+        #     stats_estab.to_json(orient="index")
+        # )
 
-        stats_compet = dataframe.groupby('col_compet').describe(include='all')
-        stats_compet.columns = [
-            "_".join(col).strip() for col in stats_compet.columns.values
-        ]
-        result['stats_compet'] = json.loads(
-            stats_compet.to_json(orient="index")
-        )
+        # stats_compet = dataframe.groupby('col_compet').describe(include='all')
+        # stats_compet.columns = [
+        #     "_".join(col).strip() for col in stats_compet.columns.values
+        # ]
+        # result['stats_compet'] = json.loads(
+        #     stats_compet.to_json(orient="index")
+        # )
 
-        ## RETIRADO pois a granularidade torna imviável a performance
-        # metadata['stats_pf'] = dataframe[
-        #     [col_pf_name, 'col_compet']
-        # ].groupby(col_pf_name).describe(include='all')
+        # ## RETIRADO pois a granularidade torna imviável a performance
+        # # metadata['stats_pf'] = dataframe[
+        # #     [col_pf_name, 'col_compet']
+        # # ].groupby(col_pf_name).describe(include='all')
 
-        stats_estab_compet = dataframe.groupby(
-            ['col_compet', col_cnpj_name]
-        ).describe(include='all')
-        stats_estab_compet.columns = [
-            "_".join(col).strip() for col in stats_estab_compet.columns.values
-        ]
-        stats_estab_compet = stats_estab_compet.reset_index()
-        stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + \
-            '_' + stats_estab_compet[col_cnpj_name].apply(str)
-        stats_estab_compet = stats_estab_compet.set_index('idx')
-        result['stats_estab_compet'] = json.loads(
-            stats_estab_compet.to_json(orient="index")
-        )
-
-        ## RETIRADO pois a granularidade torna inviável a performance
-        # metadata['stats_pf_compet'] = dataframe[
-        #     [col_pf_name, 'col_compet']
-        # ].groupby(
+        # stats_estab_compet = dataframe.groupby(
         #     ['col_compet', col_cnpj_name]
         # ).describe(include='all')
+        # stats_estab_compet.columns = [
+        #     "_".join(col).strip() for col in stats_estab_compet.columns.values
+        # ]
+        # stats_estab_compet = stats_estab_compet.reset_index()
+        # stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + \
+        #     '_' + stats_estab_compet[col_cnpj_name].apply(str)
+        # stats_estab_compet = stats_estab_compet.set_index('idx')
+        # result['stats_estab_compet'] = json.loads(
+        #     stats_estab_compet.to_json(orient="index")
+        # )
 
-        return result
+        # ## RETIRADO pois a granularidade torna inviável a performance
+        # # metadata['stats_pf_compet'] = dataframe[
+        # #     [col_pf_name, 'col_compet']
+        # # ].groupby(
+        # #     ['col_compet', col_cnpj_name]
+        # # ).describe(include='all')
+
+        # return result
+    
+    
