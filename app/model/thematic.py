@@ -89,3 +89,7 @@ class Thematic(BaseModel):
                 if options.get('theme') in each_source['datasets']:
                     return each_source['source']
         return self.METADATA['ibge']['source']
+
+    def get_column_defs(self, table_name):
+        ''' Get the column name definitions, according to the table '''
+        return self.get_repo().get_column_defs(table_name)

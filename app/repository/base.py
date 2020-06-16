@@ -22,7 +22,9 @@ class BaseRepository():
     VAL_FIELD = 'vl_indicador'
     DEFAULT_GROUPING = 'nu_competencia, cd_indicador'
     DEFAULT_PARTITIONING = 'cd_indicador'
-    CNPJ_RAIZ_COLUMNS = {}
+    CNPJ_RAIZ_COLUMNS = { # TODO Adjust columns for databases
+        "rais": "nu_cnpj_raiz"
+    }
     CNPJ_COLUMNS = {
         'aeronaves': 'proprietario_cpfcnpj',
         'auto': 'nrinscricao',
@@ -35,14 +37,14 @@ class BaseRepository():
         'rfb': 'nu_cnpj',
         'sisben': 'nu_cnpj'
     } # Dados que possuem nomes diferentes para a coluna de cnpj
-    COMPET_COLUMNS = { # TODO 1 - Set appropriate timeframe column to each dataframe
+    COMPET_COLUMNS = {  # TODO Adjust columns for databases
         'aeronaves': 'proprietario_cpfcnpj',
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
         'cagedsaldo': 'cnpj_cei',
         'cagedtrabalhador': 'cnpj_cei',
         'cagedtrabalhadorano': 'cnpj_cei',
-        'rais': 'nu_cnpj_cei',
+        'rais': 'nu_ano_rais',
         'renavam': 'proprietario_cpfcnpj',
         'rfb': 'nu_cnpj',
         'sisben': 'nu_cnpj'
@@ -131,7 +133,7 @@ class BaseRepository():
         return self.dao
 
     def get_column_defs(self, table_name):
-        ''' Get the column definitions from a dataframe ''''
+        ''' Get the column definitions from a dataframe '''
         return {
             'cnpj_raiz': self.CNPJ_RAIZ_COLUMNS.get(table_name, 'cnpj_raiz'),
             'cnpj': self.CNPJ_COLUMNS.get(table_name, 'cnpj'),
@@ -139,6 +141,14 @@ class BaseRepository():
             'persp': self.PF_COLUMNS.get(table_name),
             'compet': self.COMPET_COLUMNS.get(table_name)
         }
+    
+    def get_table_name(self, theme):
+        ''' Obtém o nome de uma tabela do cloudera '''
+        tbl_name = self.TABLE_NAMES.get(theme)
+        if tbl_name is None:
+            raise KeyError("Invalid theme")
+        return tbl_name
+
 
 class HadoopRepository(BaseRepository):
     '''Generic class for hive/impala repositories '''
@@ -226,13 +236,6 @@ class HadoopRepository(BaseRepository):
         ''' Obtém uma string parametrizada de query '''
         qry_dict = self.NAMED_QUERIES
         return qry_dict[query_name]
-
-    def get_table_name(self, table_name):
-        ''' Obtém o nome de uma tabela do cloudera '''
-        tbl_dict = self.TABLE_NAMES
-        if table_name in tbl_dict:
-            return tbl_dict[table_name]
-        raise KeyError("Invalid theme")
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
@@ -446,8 +449,8 @@ class HadoopRepository(BaseRepository):
             str_where = ' WHERE ' + self.build_filter_string(options['where'])
         str_group = ''
         nu_cats = options['categorias']
-        if options['pivot'] is not None:
-            nu_cats = nu_cats + options['pivot']
+        if options.get('pivot'):
+            nu_cats = nu_cats + options.get('pivot')
         if options['agregacao'] is not None and options['agregacao']:
             str_group = QueryBuilder.build_grouping_string(
                 nu_cats,
@@ -455,22 +458,24 @@ class HadoopRepository(BaseRepository):
             )
         str_categorias = self.build_categorias(nu_cats, options)
         str_limit = ''
-        if options['limit'] is not None:
-            str_limit = f'LIMIT {options["limit"]}'
+        if options.get('limit'):
+            str_limit = f'LIMIT {options.get("limit")}'
         str_offset = ''
-        if options['offset'] is not None:
-            str_offset = f'OFFSET {options["offset"]}'
+        if options.get('offset') is not None:
+            str_offset = f'OFFSET {options.get("offset")}'
         if 'theme' not in options:
             options['theme'] = 'MAIN'
+        print(self.get_table_name(options.get('theme')))
         query = self.get_named_query('QRY_FIND_DATASET').format(
             str_categorias,
-            self.get_table_name(options['theme']),
+            self.get_table_name(options.get('theme')),
             str_where,
             str_group,
-            self.build_order_string(options['ordenacao']),
+            self.build_order_string(options.get('ordenacao')),
             str_limit,
             str_offset
         )
+        print(query)
         return self.fetch_data(query)
 
     def find_joined_dataset(self, options=None):
@@ -496,12 +501,12 @@ class HadoopRepository(BaseRepository):
                                                       options['agregacao'], options['joined'])
         query = self.get_named_query('QRY_FIND_JOINED_DATASET').format(
             str_categorias,
-            self.get_table_name(options['theme']), # FROM
-            self.get_table_name(options['joined']), # JOIN
+            self.get_table_name(options.get('theme')), # FROM
+            self.get_table_name(options.get('joined')), # JOIN
             self.get_join_condition(options['joined'], options['where']), # ON
             str_where, # WHERE
             str_group, # GROUP BY
-            self.build_order_string(options['ordenacao']) # ORDER BY
+            self.build_order_string(options.get('ordenacao')) # ORDER BY
         )
 
         return self.fetch_data(query)

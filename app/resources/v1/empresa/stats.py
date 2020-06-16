@@ -4,7 +4,7 @@ from flask import request
 from resources.base import BaseResource
 from model.empresa.empresa import Empresa
 
-class EmpresaResource(BaseResource):
+class EmpresaStatsResource(BaseResource):
     ''' Classe de múltiplas incidências '''
     DEFAULT_SWAGGER_PARAMS = [
         {
@@ -76,14 +76,14 @@ class EmpresaResource(BaseResource):
         options['id_inv'] = cnpj_raiz
         options = self.build_person_options(options)
 
-        try:
-            result = self.get_domain().get_statistics(options)
-            if 'invalid' in result:
-                del result['invalid']
-                return result, 202
-            return result
-        except (AttributeError, KeyError, ValueError) as err:
-            return str(err), 400
+        # try:
+        result = self.get_domain().get_statistics(options)
+        if 'invalid' in result:
+            del result['invalid']
+            return result, 202
+        return result
+        # except (AttributeError, KeyError, ValueError) as err:
+        #     return str(err), 400
 
     def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''

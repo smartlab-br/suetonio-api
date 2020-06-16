@@ -39,6 +39,7 @@ class ThematicRepository(ImpalaRepository):
         'censoagroestadual': 'censo_agro_uf',
         'censoagronacional': 'censo_agro_br',
 
+        'rais': 'tb_rais', 
         'incidenciaescravidao': 'incidencia_trabalho_escravo',
         'migracoesescravos': 'te_migracoes',
         'operacoesresgate': 'operacoes_trabalho_escravo',
