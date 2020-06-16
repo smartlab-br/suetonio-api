@@ -171,12 +171,16 @@ class Empresa(BaseModel):
             cols = thematic_handler.get_column_defs(df)
             local_cols = cols.copy()
 
+            # Autos and Catweb need a timeframe to filter
+            if df in ['auto', 'catweb'] and 'column' not in options:
+                raise AttributeError(f'{df} demanda uma competência')
+
             # If the dataset doesn't have a unique column to identify a company
             if isinstance(cols.get('cnpj_raiz'), dict):
                 if options.get('perspective') is None:
                     raise AttributeError(f'{df} demanda uma perspectiva')
                 else:
-                    local_cols = thematic_handler.decode_column_defs(df, options.get('perspective'))
+                    local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
 
             local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
             base_stats = json.loads(thematic_handler.find_dataset(local_options))
@@ -186,23 +190,25 @@ class Empresa(BaseModel):
 
             result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
 
-            if options.get('perspective') and thematic_handler.PERSP_VALUES.get(df):
+            if options.get('perspective') and thematic_handler.get_persp_values(df):
                 local_result = {}
-                for each_persp_key, each_persp_value in thematic_handler.PERSP_VALUES.get(df):
-                    local_cols = thematic_handler.decode_column_defs(df, options.get('perspective'))
+                for each_persp_key, each_persp_value in thematic_handler.get_persp_values(df).items():
+                    local_cols = thematic_handler.decode_column_defs(cols, df, options.get('perspective'))
                     local_options = self.get_stats_local_options(options, cols, df, each_persp_key)
                     local_options["where"].append(f"and")
-                    local_options["where"].append(f"eq-{thematic_handler.PERSP_COLUMNS.get(df)}-{each_persp_value}")
-                    local_result[each_persp] = self.get_grouped_stats(thematic_handler, local_options, cols) 
-                result[df][f"stats_{each_persp}"] = {**result[df], **local_result}
+                    local_options["where"].append(f"eq-{thematic_handler.get_persp_columns(df)}-{each_persp_value}")
+                    local_result[each_persp_key] = self.get_grouped_stats(thematic_handler, local_options, cols) 
+                result[df][f"stats_{each_persp_key}"] = {**result[df], **local_result}
         return result
 
     def get_stats_local_options(self, options, local_cols, df, persp):
         ''' Create options according to tables and queriy conditions '''
         subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}"]
-
         # Change initial subset_rules for renavam and aeronaves
-        if df in ['aeronaves', 'renavam']:
+        # TODO - cagedsaldo - CAST(SUBSTR(LPAD(CAST(CNPJ_CEI as varchar(14)), 14, '0'), 1, 8) AS INTEGER)
+        if df in ['catweb', 'auto']: # Some columns are varchar
+            subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'"]
+        elif df in ['aeronaves', 'renavam']:
             subset_rules = [
                 f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8",
                 "and",
@@ -211,17 +217,17 @@ class Empresa(BaseModel):
         
         if 'cnpj_raiz_flag' in local_cols:
             subset_rules.append("and")
-            subset_rules.append(f"eq-{local_cols.get('cnpj_raiz_flag')}-1")
+            subset_rules.append(f"eq-{local_cols.get('cnpj_raiz_flag')}-'1'")
         if options.get('cnpj'): # Add cnpj filter
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('cnpj')}-{options.get('cnpj')}")
             if 'cnpj_flag' in local_cols:
                 subset_rules.append("and")
-                subset_rules.append(f"eq-{local_cols.get('cnpj_flag')}-1")
+                subset_rules.append(f"eq-{local_cols.get('cnpj_flag')}-'1'")
         if options.get('id_pf'): # Add pf filter
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('pf')}-{options.get('id_pf')}")
-        if options.get('column'): # Add timeframe filter
+        if options.get('column') and df not in ['catweb', 'auto']: # Add timeframe filter
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('compet')}-{options.get('column')}")
 
@@ -230,13 +236,26 @@ class Empresa(BaseModel):
             subset_rules.append(f"eq-tp_estab-1")
         elif df == 'auto':
             subset_rules.append("and")
-            subset_rules.append(f"eq-tpinscricao-1")
+            subset_rules.append(f"eq-tpinscricao-'1'")
             subset_rules.append("and")
             subset_rules.append(f"nl-dtcancelamento")
+            subset_rules.append("and")
+            # TODO - Compare with substring, for it's a timestamp
+            subset_rules.append(f"gestr-{local_cols.get('compet')}-\'{options.get('column')}\-01\-01\'-1-10")
+            subset_rules.append("and")
+            subset_rules.append(f"lestr-{local_cols.get('compet')}-\'{options.get('column')}1231\'-1-10")
+        elif df == 'catweb':
+            subset_rules.append("and")
+            subset_rules.append(f"ge-{local_cols.get('compet')}-\'{options.get('column')}0101\'")
+            subset_rules.append("and")
+            subset_rules.append(f"le-{local_cols.get('compet')}-\'{options.get('column')}1231\'")
         elif df in ['caged', 'cagedsaldo', 'cagedtrabalhador', 'cagedtrabalhadorano']:
             subset_rules.append("and")
             subset_rules.append(f"eq-tipo_estab-1")
         
+        # TODO 
+        # catewb > dt_acidente >= :inicioDtAcidente AND dt_acidente <= :fimDtAcidente 
+
         return {
             "categorias": [local_cols.get('cnpj_raiz')],
             "agregacao": ['count'],
@@ -252,29 +271,31 @@ class Empresa(BaseModel):
         options['as_pandas'] = True
         options['no_wrap'] = True
 
-        # Get statistics partitioning by timeframe
-        options["categorias"] = [cols.get('compet')]
-        options["ordenacao"] = [f"-{cols.get('compet')}"]
-        result["stats_compet"] = json.loads(
-            thematic_handler.find_dataset(options).set_index(cols.get('compet')).to_json(orient="index")
-        )
-        
         # Get statistics partitioning by unit
-        options["categorias"] = [cols.get('cnpj')]
-        options["ordenacao"] = [cols.get('cnpj')]
-        result["stats_estab"] = json.loads(
-            thematic_handler.find_dataset(options).set_index(cols.get('cnpj')).to_json(orient="index")
-        )
+        if 'cnpj' not in cols: # Ignores datasources with no cnpj definition
+            options["categorias"] = [cols.get('cnpj')]
+            options["ordenacao"] = [cols.get('cnpj')]
+            result["stats_estab"] = json.loads(
+                thematic_handler.find_dataset(options).set_index(cols.get('cnpj')).to_json(orient="index")
+            )
 
-        # Get statistics partitioning by unit and timeframe
-        options["categorias"] = [cols.get('cnpj'), cols.get('compet')]
-        options["ordenacao"] = [f"-{cols.get('compet')}"]
-        df_local_result = thematic_handler.find_dataset(options)
-        df_local_result['idx'] = df_local_result[cols.get('compet')].apply(str) + \
-            '_' + df_local_result[cols.get('cnpj')].apply(str)
-        result["stats_estab_compet"] = json.loads(
-            df_local_result.set_index('idx').to_json(orient="index")
-        )
+        # Get statistics partitioning by timeframe
+        if 'compet' in cols and options.get('theme') not in ['catweb', 'auto']: # Ignores datasources with no timeframe definition
+            options["categorias"] = [cols.get('compet')]
+            options["ordenacao"] = [f"-{cols.get('compet')}"]
+            result["stats_compet"] = json.loads(
+                thematic_handler.find_dataset(options).set_index(cols.get('compet')).to_json(orient="index")
+            )
+        
+            # Get statistics partitioning by unit and timeframe
+            options["categorias"] = [cols.get('cnpj'), cols.get('compet')]
+            options["ordenacao"] = [f"-{cols.get('compet')}"]
+            df_local_result = thematic_handler.find_dataset(options)
+            df_local_result['idx'] = df_local_result[cols.get('compet')].apply(str) + \
+                '_' + df_local_result[cols.get('cnpj')].apply(str)
+            result["stats_estab_compet"] = json.loads(
+                df_local_result.set_index('idx').to_json(orient="index")
+            )
     
         ## RETIRADO pois a granularidade torna imviável a performance
         # metadata['stats_pf'] = dataframe[

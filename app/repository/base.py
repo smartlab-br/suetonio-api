@@ -23,31 +23,45 @@ class BaseRepository():
     DEFAULT_GROUPING = 'nu_competencia, cd_indicador'
     DEFAULT_PARTITIONING = 'cd_indicador'
     CNPJ_RAIZ_COLUMNS = { # TODO Adjust columns for databases
-        "rais": "nu_cnpj_raiz"
+        "aeronaves": "cpf_cnpj",
+        "auto": "nu_cnpj_raiz",
+        "rais": "nu_cnpj_raiz",
+        "rfb" : "nu_cnpj_raiz",
+        "sisben": "nu_cnpj_raiz",
+        "catweb": {
+            "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
+            "concessao": {"column": "nu_cnpj_raiz_empregador_concessao", "flag": "tp_empregador_concessao"},
+            "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_raiz_tomador"}
+        },
+        "renavam": "nu_identificacao_prop_veic"
     }
     CNPJ_COLUMNS = {
-        'aeronaves': 'proprietario_cpfcnpj',
+        'aeronaves': 'cpf_cnpj',
         'auto': 'nrinscricao',
         'caged': 'cnpj_cei',
         'cagedsaldo': 'cnpj_cei',
         'cagedtrabalhador': 'cnpj_cei',
         'cagedtrabalhadorano': 'cnpj_cei',
         'rais': 'nu_cnpj_cei',
-        'renavam': 'proprietario_cpfcnpj',
+        'renavam': 'nu_identificacao_prop_veic',
         'rfb': 'nu_cnpj',
-        'sisben': 'nu_cnpj'
+        'sisben': 'nu_cnpj',
+        "catweb": {
+            "empregador":{"column": "nu_cnpj_empregador", "flag": "tp_empregador"},
+            "concessao": {"column": "nu_cnpj_empregador_concessao", "flag": "tp_empregador_concessao"},
+            "aeps": {"column": "nu_cnpj_empregador_aeps", "flag": "tp_empregador_aeps"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"}
+        }
     } # Dados que possuem nomes diferentes para a coluna de cnpj
-    COMPET_COLUMNS = {  # TODO Adjust columns for databases
-        'aeronaves': 'proprietario_cpfcnpj',
-        'auto': 'nrinscricao',
-        'caged': 'cnpj_cei',
-        'cagedsaldo': 'cnpj_cei',
-        'cagedtrabalhador': 'cnpj_cei',
-        'cagedtrabalhadorano': 'cnpj_cei',
+    COMPET_COLUMNS = {
+        'auto': 'dtlavratura', # Date, used to filter
+        'caged': 'competencia_declarada',
+        'cagedsaldo': 'competencia_mov',
+        'cagedtrabalhador': 'competencia_declarada',
+        'cagedtrabalhadorano': 'ano_declarado',
         'rais': 'nu_ano_rais',
-        'renavam': 'proprietario_cpfcnpj',
-        'rfb': 'nu_cnpj',
-        'sisben': 'nu_cnpj'
+        'catweb': 'dt_acidente' # Date, used to filter
     }
     PF_COLUMNS = {
         'aeronaves': 'proprietario_cpfcnpj',
@@ -147,10 +161,10 @@ class BaseRepository():
     def decode_column_defs(original, table_name, perspective):
         ''' Get the column definitions from a dataframe with a certain perspective'''
         result = original.copy()
-        result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get('perspective',{}).get('cnpj_raiz')
-        result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get('perspective',{}).get('flag')
-        result['cnpj'] = original.get('cnpj',{}).get('perspective',{}).get('cnpj_raiz')
-        result['cnpj_flag'] = original.get('cnpj',{}).get('perspective',{}).get('flag')
+        result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('column')
+        result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('flag')
+        result['cnpj'] = original.get('cnpj',{}).get(perspective,{}).get('column')
+        result['cnpj_flag'] = original.get('cnpj',{}).get(perspective,{}).get('flag')
         return result
 
     def get_table_name(self, theme):
@@ -452,6 +466,8 @@ class HadoopRepository(BaseRepository):
                     if w_clause[0].upper() == 'NEON':
                         op = '<>'
                     arr_result.append(f"{resulting_string} {op} {w_clause[2]}")
+                elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
+                    arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
         return ' '.join(arr_result)
 
     @staticmethod
