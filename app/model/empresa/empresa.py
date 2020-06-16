@@ -192,6 +192,9 @@ class Empresa(BaseModel):
             if base_stats.get('dataset',[]):
                 result[df]["stats"] = base_stats.get('dataset')[0]
 
+            local_options['as_pandas'] = True
+            local_options['no_wrap'] = True
+
             result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
             if options.get('perspective') and thematic_handler.PERSP_VALUES.get(df):
                 local_result = {}
@@ -210,17 +213,26 @@ class Empresa(BaseModel):
         # Get statistics partitioning by timeframe
         options["categorias"] = [cols.get('compet')]
         options["ordenacao"] = [f"-{cols.get('compet')}"]
-        result["stats_compet"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
-
+        result["stats_compet"] = json.loads(
+            thematic_handler.find_dataset(options).set_index(cols.get('compet')).to_json(orient="index")
+        )
+        
         # Get statistics partitioning by unit
         options["categorias"] = [cols.get('cnpj')]
         options["ordenacao"] = [cols.get('cnpj')]
-        result["stats_estab"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
+        result["stats_estab"] = json.loads(
+            thematic_handler.find_dataset(options).set_index(cols.get('cnpj')).to_json(orient="index")
+        )
 
         # Get statistics partitioning by unit and timeframe
         options["categorias"] = [cols.get('cnpj'), cols.get('compet')]
         options["ordenacao"] = [f"-{cols.get('compet')}"]
-        result["stats_estab_compet"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
+        df_local_result = thematic_handler.find_dataset(options)
+        df_local_result['idx'] = df_local_result[cols.get('compet')].apply(str) + \
+            '_' + df_local_result[cols.get('cnpj')].apply(str)
+        result["stats_estab_compet"] = json.loads(
+            df_local_result.set_index('idx').to_json(orient="index")
+        )
     
         ## RETIRADO pois a granularidade torna imviável a performance
         # metadata['stats_pf'] = dataframe[
@@ -233,5 +245,5 @@ class Empresa(BaseModel):
         # ].groupby(
         #     ['col_compet', col_cnpj_name]
         # ).describe(include='all')
-
+        
         return result
