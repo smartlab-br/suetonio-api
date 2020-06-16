@@ -39,9 +39,20 @@ class ThematicRepository(ImpalaRepository):
         'censoagroestadual': 'censo_agro_uf',
         'censoagronacional': 'censo_agro_br',
 
-        'rais': 'tb_rais', 
-        # TODO 1 - Add talbe definitions for themes according to kafka topics
-        
+        'rais': 'tb_rais',
+        'rfb': "rfb_dados_cadastrais_2018",
+        'sisben': "concessao_2018",
+        'catweb': "catweb",
+        'auto': "tb_auto",
+        'caged': "tb_caged_estab",
+        'rfbsocios': "rfb_dados_socio_tratado",
+        'rfbparticipacaosocietaria': "rfb_dados_socio_tratado", # Lookup diferente, mas mesma tabela
+        'aeronaves': "tb_aeronaves",
+        'renavam': "tb_renavam_2018",
+        'cagedsaldo': "tb_caged_saldos",
+        'cagedtrabalhador': "tb_caged_trabalhador",
+        'cagedtrabalhadorano': "tb_caged_trabalhador", # Temporalidade diferente, mas mesma tabela
+
         'incidenciaescravidao': 'incidencia_trabalho_escravo',
         'migracoesescravos': 'te_migracoes',
         'operacoesresgate': 'operacoes_trabalho_escravo',

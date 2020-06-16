@@ -17,8 +17,7 @@ class EmpresaRepository(HBaseRepository):
                 options.get('column_family'),
                 options.get('column')
             )
-            metadata = {}
-
+            
             # Result splitting according to perspectives
             nu_results = {}
             for ds_key in result:
@@ -55,13 +54,11 @@ class EmpresaRepository(HBaseRepository):
                     result[ds_key] = result[ds_key][list_dimred]
 
                 # Captura de metadados
-                metadata[ds_key] = self.get_metadata(result[ds_key], col_cnpj_name)
-
+                
                 # Conversão dos datasets em json
                 result[ds_key] = json.loads(result[ds_key].to_json(orient="records"))
 
-            return (result, metadata)
-        return (None, None)
+            return result
 
     @staticmethod
     def filter_by_person(dataframe, options, col_cnpj_name, col_pf_name):
@@ -88,66 +85,3 @@ class EmpresaRepository(HBaseRepository):
                 id_pf = int(id_pf)
             dataframe = dataframe[dataframe[col_pf_name] == id_pf]
         return dataframe
-
-    @staticmethod
-    def get_metadata(dataframe, col_cnpj_name):
-        ''' Captura metadados de um dataframe '''
-        if dataframe is None:
-            return None
-
-        # result = {
-        #     'stats': json.loads(dataframe.describe(include='all').to_json(orient="index"))
-        # }
-
-        # if dataframe.empty:
-        #     return result
-
-        # stats_estab = dataframe.groupby(col_cnpj_name).describe(include='all')
-        # stats_estab.columns = [
-        #     "_".join(col).strip()
-        #     for
-        #     col
-        #     in
-        #     stats_estab.columns.values
-        # ]
-        # result['stats_estab'] = json.loads(
-        #     stats_estab.to_json(orient="index")
-        # )
-
-        # stats_compet = dataframe.groupby('col_compet').describe(include='all')
-        # stats_compet.columns = [
-        #     "_".join(col).strip() for col in stats_compet.columns.values
-        # ]
-        # result['stats_compet'] = json.loads(
-        #     stats_compet.to_json(orient="index")
-        # )
-
-        # ## RETIRADO pois a granularidade torna imviável a performance
-        # # metadata['stats_pf'] = dataframe[
-        # #     [col_pf_name, 'col_compet']
-        # # ].groupby(col_pf_name).describe(include='all')
-
-        # stats_estab_compet = dataframe.groupby(
-        #     ['col_compet', col_cnpj_name]
-        # ).describe(include='all')
-        # stats_estab_compet.columns = [
-        #     "_".join(col).strip() for col in stats_estab_compet.columns.values
-        # ]
-        # stats_estab_compet = stats_estab_compet.reset_index()
-        # stats_estab_compet['idx'] = stats_estab_compet['col_compet'].apply(str) + \
-        #     '_' + stats_estab_compet[col_cnpj_name].apply(str)
-        # stats_estab_compet = stats_estab_compet.set_index('idx')
-        # result['stats_estab_compet'] = json.loads(
-        #     stats_estab_compet.to_json(orient="index")
-        # )
-
-        # ## RETIRADO pois a granularidade torna inviável a performance
-        # # metadata['stats_pf_compet'] = dataframe[
-        # #     [col_pf_name, 'col_compet']
-        # # ].groupby(
-        # #     ['col_compet', col_cnpj_name]
-        # # ).describe(include='all')
-
-        # return result
-    
-    

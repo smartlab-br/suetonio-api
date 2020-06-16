@@ -42,7 +42,8 @@ class Empresa(BaseModel):
         )
         result = {'status': loading_entry}
         try:
-            (dataset, metadata) = self.get_repo().find_datasets(options)
+            dataset = self.get_repo().find_datasets(options)
+            metadata = self.get_statistics(options)
             result['metadata'] = metadata
             if 'only_meta' in options and options['only_meta']:
                 result['dataset'] = []
@@ -156,7 +157,6 @@ class Empresa(BaseModel):
     
     def get_statistics(self, options):
         ''' Gets statistics for a company using impala '''
-        print(options)
         if options.get('column_family'):
             dataframes = [options.get('column_family')]
         else:
@@ -186,9 +186,7 @@ class Empresa(BaseModel):
                 "theme": df
             }
             base_stats = json.loads(thematic_handler.find_dataset(local_options))
-            result[df] = {
-                "metadata": base_stats.get('metadata')
-            }
+            result[df] = base_stats.get('metadata')
             if base_stats.get('dataset',[]):
                 result[df]["stats"] = base_stats.get('dataset')[0]
 
