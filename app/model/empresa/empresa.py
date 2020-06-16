@@ -174,14 +174,14 @@ class Empresa(BaseModel):
             # Autos and Catweb need a timeframe to filter
             if df in ['auto', 'catweb'] and 'column' not in options:
                 raise AttributeError(f'{df} demanda uma competência')
-
+            
             # If the dataset doesn't have a unique column to identify a company
             if isinstance(cols.get('cnpj_raiz'), dict):
                 if options.get('perspective') is None:
                     raise AttributeError(f'{df} demanda uma perspectiva')
                 else:
                     local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
-
+            
             local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
             base_stats = json.loads(thematic_handler.find_dataset(local_options))
             result[df] = base_stats.get('metadata')
@@ -190,7 +190,7 @@ class Empresa(BaseModel):
 
             result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
 
-            if options.get('perspective') and thematic_handler.get_persp_values(df):
+            if not options.get('perspective') and thematic_handler.get_persp_values(df):
                 local_result = {}
                 for each_persp_key, each_persp_value in thematic_handler.get_persp_values(df).items():
                     local_cols = thematic_handler.decode_column_defs(cols, df, options.get('perspective'))
