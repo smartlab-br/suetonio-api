@@ -465,7 +465,7 @@ class HadoopRepository(BaseRepository):
             str_offset = f'OFFSET {options.get("offset")}'
         if 'theme' not in options:
             options['theme'] = 'MAIN'
-        print(self.get_table_name(options.get('theme')))
+        
         query = self.get_named_query('QRY_FIND_DATASET').format(
             str_categorias,
             self.get_table_name(options.get('theme')),
@@ -475,7 +475,7 @@ class HadoopRepository(BaseRepository):
             str_limit,
             str_offset
         )
-        print(query)
+        
         return self.fetch_data(query)
 
     def find_joined_dataset(self, options=None):

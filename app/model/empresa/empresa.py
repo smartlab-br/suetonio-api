@@ -185,9 +185,12 @@ class Empresa(BaseModel):
                 "where": subset_rules,
                 "theme": df
             }
-            result[df] = { 
-                "stats": thematic_handler.find_dataset(local_options)
+            base_stats = json.loads(thematic_handler.find_dataset(local_options))
+            result[df] = {
+                "metadata": base_stats.get('metadata')
             }
+            if base_stats.get('dataset',[]):
+                result[df]["stats"] = base_stats.get('dataset')[0]
 
             result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
             if options.get('perspective') and thematic_handler.PERSP_VALUES.get(df):
@@ -197,7 +200,6 @@ class Empresa(BaseModel):
                     local_options["where"].append(f"eq-{thematic_handler.PERSP_COLUMNS.get(df)}-{each_persp_value}")
                     local_result[each_persp] = self.get_grouped_stats(thematic_handler, local_options, cols) 
                 result[df][f"stats_{each_persp}"] = {**result[df], **local_result}
-            print(result)
         return result
         
     @staticmethod
@@ -208,17 +210,17 @@ class Empresa(BaseModel):
         # Get statistics partitioning by timeframe
         options["categorias"] = [cols.get('compet')]
         options["ordenacao"] = [f"-{cols.get('compet')}"]
-        result["stats_compet"] = thematic_handler.find_dataset(options)
+        result["stats_compet"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
 
         # Get statistics partitioning by unit
         options["categorias"] = [cols.get('cnpj')]
         options["ordenacao"] = [cols.get('cnpj')]
-        result["stats_estab"] = thematic_handler.find_dataset(options)
+        result["stats_estab"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
 
         # Get statistics partitioning by unit and timeframe
         options["categorias"] = [cols.get('cnpj'), cols.get('compet')]
         options["ordenacao"] = [f"-{cols.get('compet')}"]
-        result["stats_estab_compet"] = thematic_handler.find_dataset(options)
+        result["stats_estab_compet"] = json.loads(thematic_handler.find_dataset(options)).get('dataset')
     
         ## RETIRADO pois a granularidade torna imviável a performance
         # metadata['stats_pf'] = dataframe[

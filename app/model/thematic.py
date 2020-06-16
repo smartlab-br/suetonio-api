@@ -5,6 +5,7 @@ from repository.thematic import ThematicRepository
 #pylint: disable=R0903
 class Thematic(BaseModel):
     ''' Definição do repo '''
+    # TODO 1 - Add new tables to the appropriate metadata
     METADATA = {
         'SMARTLAB': {
             'datasets': [
