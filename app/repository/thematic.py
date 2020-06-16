@@ -40,6 +40,8 @@ class ThematicRepository(ImpalaRepository):
         'censoagronacional': 'censo_agro_br',
 
         'rais': 'tb_rais', 
+        # TODO 1 - Add talbe definitions for themes according to kafka topics
+        
         'incidenciaescravidao': 'incidencia_trabalho_escravo',
         'migracoesescravos': 'te_migracoes',
         'operacoesresgate': 'operacoes_trabalho_escravo',
