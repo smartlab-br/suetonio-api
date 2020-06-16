@@ -5,7 +5,6 @@ from repository.thematic import ThematicRepository
 #pylint: disable=R0903
 class Thematic(BaseModel):
     ''' Definição do repo '''
-    # TODO 1 - Add new tables to the appropriate metadata
     METADATA = {
         'SMARTLAB': {
             'datasets': [
@@ -34,7 +33,9 @@ class Thematic(BaseModel):
         },
         'trabalho': {
             'datasets': [
-                'catweb', 'incidenciaescravidao', 'migracoesescravos',
+                'catweb', 'rais', 'cagedtrabalhador', 'caged',
+                'cagedsaldo', 'cagedtrabalhadorano',
+                'incidenciaescravidao', 'migracoesescravos',
                 'operacoesresgate', 'teindicadoresnacionais',
                 'teindicadoresmunicipais', 'teindicadoresestaduais',
                 'teindicadoresunidadempt', 'temlexposicaoresgate',
@@ -44,6 +45,27 @@ class Thematic(BaseModel):
             'source': {
                 'fonte': 'Ministério da Economia - Secretaria de Trabalho',
                 'link': 'http://trabalho.gov.br/'
+            }
+        },
+        'denatran': {
+            'datasets': ['renavam', 'aeronaves'],
+            'source': {
+                'fonte': 'Denatran',
+                'link': 'https://infraestrutura.gov.br/denatran'
+            }
+        },
+        'mpt': {
+            'datasets': ['auto'],
+            'source': {
+                'fonte': 'MPT - Ministério Público do Trabalho',
+                'link': 'https://mpt.mp.br'
+            }
+        },
+        'rfb': {
+            'datasets': ['rfb', 'rfbsocios', 'rfbparticipacaosocietaria'],
+            'source': {
+                'fonte': 'Receita Federal',
+                'link': 'https://receita.economia.gov.br/'
             }
         },
         'assistenciasocial': {
