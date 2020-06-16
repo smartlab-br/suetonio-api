@@ -2,6 +2,7 @@
 from datetime import datetime
 import requests
 import json
+import re
 from kafka import KafkaProducer
 from flask import current_app
 from model.thematic import Thematic
@@ -168,45 +169,88 @@ class Empresa(BaseModel):
         for df in dataframes:
             # Get statistics for dataset
             cols = thematic_handler.get_column_defs(df)
-            subset_rules = [f"eq-{cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}"]
-            if options.get('cnpj'): # Add cnpj filter
-                subset_rules.append("and")
-                subset_rules.append(f"eq-{cols.get('cnpj')}-{options.get('cnpj')}")
-            if options.get('id_pf'): # Add pf filter
-                subset_rules.append("and")
-                subset_rules.append(f"eq-{cols.get('pf')}-{options.get('id_pf')}")
-            if options.get('column'): # Add timeframe filter
-                subset_rules.append("and")
-                subset_rules.append(f"eq-{cols.get('compet')}-{options.get('column')}")
-            
-            local_options = {
-                "categorias": [cols.get('cnpj_raiz')],
-                "agregacao": ['count'],
-                "where": subset_rules,
-                "theme": df
-            }
+            local_cols = cols.copy()
+
+            # If the dataset doesn't have a unique column to identify a company
+            if isinstance(cols.get('cnpj_raiz'), dict):
+                if options.get('perspective') is None:
+                    raise AttributeError(f'{df} demanda uma perspectiva')
+                else:
+                    local_cols = thematic_handler.decode_column_defs(df, options.get('perspective'))
+
+            local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
             base_stats = json.loads(thematic_handler.find_dataset(local_options))
             result[df] = base_stats.get('metadata')
             if base_stats.get('dataset',[]):
                 result[df]["stats"] = base_stats.get('dataset')[0]
 
-            local_options['as_pandas'] = True
-            local_options['no_wrap'] = True
-
             result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
+
             if options.get('perspective') and thematic_handler.PERSP_VALUES.get(df):
                 local_result = {}
                 for each_persp_key, each_persp_value in thematic_handler.PERSP_VALUES.get(df):
+                    local_cols = thematic_handler.decode_column_defs(df, options.get('perspective'))
+                    local_options = self.get_stats_local_options(options, cols, df, each_persp_key)
                     local_options["where"].append(f"and")
                     local_options["where"].append(f"eq-{thematic_handler.PERSP_COLUMNS.get(df)}-{each_persp_value}")
                     local_result[each_persp] = self.get_grouped_stats(thematic_handler, local_options, cols) 
                 result[df][f"stats_{each_persp}"] = {**result[df], **local_result}
         return result
+
+    def get_stats_local_options(self, options, local_cols, df, persp):
+        ''' Create options according to tables and queriy conditions '''
+        subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}"]
+
+        # Change initial subset_rules for renavam and aeronaves
+        if df in ['aeronaves', 'renavam']:
+            subset_rules = [
+                f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8",
+                "and",
+                f"neon-{local_cols.get('cnpj_raiz')}-00000000000000"
+            ]
         
+        if 'cnpj_raiz_flag' in local_cols:
+            subset_rules.append("and")
+            subset_rules.append(f"eq-{local_cols.get('cnpj_raiz_flag')}-1")
+        if options.get('cnpj'): # Add cnpj filter
+            subset_rules.append("and")
+            subset_rules.append(f"eq-{local_cols.get('cnpj')}-{options.get('cnpj')}")
+            if 'cnpj_flag' in local_cols:
+                subset_rules.append("and")
+                subset_rules.append(f"eq-{local_cols.get('cnpj_flag')}-1")
+        if options.get('id_pf'): # Add pf filter
+            subset_rules.append("and")
+            subset_rules.append(f"eq-{local_cols.get('pf')}-{options.get('id_pf')}")
+        if options.get('column'): # Add timeframe filter
+            subset_rules.append("and")
+            subset_rules.append(f"eq-{local_cols.get('compet')}-{options.get('column')}")
+
+        if df == 'rais':
+            subset_rules.append("and")
+            subset_rules.append(f"eq-tp_estab-1")
+        elif df == 'auto':
+            subset_rules.append("and")
+            subset_rules.append(f"eq-tpinscricao-1")
+            subset_rules.append("and")
+            subset_rules.append(f"nl-dtcancelamento")
+        elif df in ['caged', 'cagedsaldo', 'cagedtrabalhador', 'cagedtrabalhadorano']:
+            subset_rules.append("and")
+            subset_rules.append(f"eq-tipo_estab-1")
+        
+        return {
+            "categorias": [local_cols.get('cnpj_raiz')],
+            "agregacao": ['count'],
+            "where": subset_rules,
+            "theme": df
+        }    
+
     @staticmethod
     def get_grouped_stats(thematic_handler, options, cols):
         ''' Get stats for dataframe partitions '''
-        result = {}
+        result = {}        
+
+        options['as_pandas'] = True
+        options['no_wrap'] = True
 
         # Get statistics partitioning by timeframe
         options["categorias"] = [cols.get('compet')]

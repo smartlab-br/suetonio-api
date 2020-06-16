@@ -138,10 +138,21 @@ class BaseRepository():
             'cnpj_raiz': self.CNPJ_RAIZ_COLUMNS.get(table_name, 'cnpj_raiz'),
             'cnpj': self.CNPJ_COLUMNS.get(table_name, 'cnpj'),
             'pf': self.PF_COLUMNS.get(table_name, 'cpf'),
-            'persp': self.PF_COLUMNS.get(table_name),
+            'persp': self.PERSP_COLUMNS.get(table_name),
+            'persp_options': self.PERSP_VALUES.get(table_name),
             'compet': self.COMPET_COLUMNS.get(table_name)
         }
     
+    @staticmethod
+    def decode_column_defs(original, table_name, perspective):
+        ''' Get the column definitions from a dataframe with a certain perspective'''
+        result = original.copy()
+        result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get('perspective',{}).get('cnpj_raiz')
+        result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get('perspective',{}).get('flag')
+        result['cnpj'] = original.get('cnpj',{}).get('perspective',{}).get('cnpj_raiz')
+        result['cnpj_flag'] = original.get('cnpj',{}).get('perspective',{}).get('flag')
+        return result
+
     def get_table_name(self, theme):
         ''' Obtém o nome de uma tabela do cloudera '''
         tbl_name = self.TABLE_NAMES.get(theme)
@@ -433,6 +444,14 @@ class HadoopRepository(BaseRepository):
                     )
                 elif w_clause[0].upper() == 'IN':
                     arr_result.append(f'{w_clause[1]} IN ({",".join(w_clause[2:])})')
+                elif w_clause[0].upper() in ['EQON', 'NEON']:
+                    resulting_string = f"regexp_replace({w_clause[1]}, '[^[:digit:]]','')"
+                    if len(w_clause) == 5: # Substring
+                        resulting_string = f"substring({resulting_string}, {w_clause[3]}, {w_clause[4]})" 
+                    op = '='
+                    if w_clause[0].upper() == 'NEON':
+                        op = '<>'
+                    arr_result.append(f"{resulting_string} {op} {w_clause[2]}")
         return ' '.join(arr_result)
 
     @staticmethod
