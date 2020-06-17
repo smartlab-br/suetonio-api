@@ -205,8 +205,9 @@ class Empresa(BaseModel):
         ''' Create options according to tables and queriy conditions '''
         subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}"]
         # Change initial subset_rules for renavam and aeronaves
-        # TODO - cagedsaldo - CAST(SUBSTR(LPAD(CAST(CNPJ_CEI as varchar(14)), 14, '0'), 1, 8) AS INTEGER)
-        if df in ['catweb', 'auto']: # Some columns are varchar
+        if df == 'cagedsaldo':
+            subset_rules = [f"eqlpint-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-14-0-1-8"]
+        elif df in ['catweb', 'auto']: # Some columns are varchar
             subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'"]
         elif df in ['aeronaves', 'renavam']:
             subset_rules = [
@@ -240,10 +241,9 @@ class Empresa(BaseModel):
             subset_rules.append("and")
             subset_rules.append(f"nl-dtcancelamento")
             subset_rules.append("and")
-            # TODO - Compare with substring, for it's a timestamp
             subset_rules.append(f"gestr-{local_cols.get('compet')}-\'{options.get('column')}\-01\-01\'-1-10")
             subset_rules.append("and")
-            subset_rules.append(f"lestr-{local_cols.get('compet')}-\'{options.get('column')}1231\'-1-10")
+            subset_rules.append(f"lestr-{local_cols.get('compet')}-\'{options.get('column')}\-12\-31\'-1-10")
         elif df == 'catweb':
             subset_rules.append("and")
             subset_rules.append(f"ge-{local_cols.get('compet')}-\'{options.get('column')}0101\'")
@@ -253,9 +253,6 @@ class Empresa(BaseModel):
             subset_rules.append("and")
             subset_rules.append(f"eq-tipo_estab-1")
         
-        # TODO 
-        # catewb > dt_acidente >= :inicioDtAcidente AND dt_acidente <= :fimDtAcidente 
-
         return {
             "categorias": [local_cols.get('cnpj_raiz')],
             "agregacao": ['count'],

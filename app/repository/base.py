@@ -22,7 +22,7 @@ class BaseRepository():
     VAL_FIELD = 'vl_indicador'
     DEFAULT_GROUPING = 'nu_competencia, cd_indicador'
     DEFAULT_PARTITIONING = 'cd_indicador'
-    CNPJ_RAIZ_COLUMNS = { # TODO Adjust columns for databases
+    CNPJ_RAIZ_COLUMNS = {
         "aeronaves": "cpf_cnpj",
         "auto": "nu_cnpj_raiz",
         "rais": "nu_cnpj_raiz",
@@ -34,7 +34,8 @@ class BaseRepository():
             "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
             "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_raiz_tomador"}
         },
-        "renavam": "nu_identificacao_prop_veic"
+        "renavam": "nu_identificacao_prop_veic",
+        "cagedsaldo": "cnpj_cei"
     }
     CNPJ_COLUMNS = {
         'aeronaves': 'cpf_cnpj',
@@ -468,6 +469,10 @@ class HadoopRepository(BaseRepository):
                     arr_result.append(f"{resulting_string} {op} {w_clause[2]}")
                 elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
+                elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:
+                    arr_result.append(f"substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
+                elif w_clause[0].upper() in ['EQLPINT', 'NELPINT', 'LELPINT', 'GELPINT', 'LTLPINT', 'GTLPINT']:
+                    arr_result.append(f"CAST(substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) AS INTEGER) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
         return ' '.join(arr_result)
 
     @staticmethod
@@ -510,7 +515,6 @@ class HadoopRepository(BaseRepository):
             str_limit,
             str_offset
         )
-        
         return self.fetch_data(query)
 
     def find_joined_dataset(self, options=None):
