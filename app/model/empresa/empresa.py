@@ -207,6 +207,8 @@ class Empresa(BaseModel):
         # Change initial subset_rules for renavam and aeronaves
         if df == 'cagedsaldo':
             subset_rules = [f"eqlpint-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-14-0-1-8"]
+        elif df in ['rfbsocios', 'rfbparticipacaosocietaria']: # Some columns are varchar
+            subset_rules = [f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8"]
         elif df in ['catweb', 'auto']: # Some columns are varchar
             subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'"]
         elif df in ['aeronaves', 'renavam']:
@@ -219,16 +221,22 @@ class Empresa(BaseModel):
         if 'cnpj_raiz_flag' in local_cols:
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('cnpj_raiz_flag')}-'1'")
-        if options.get('cnpj'): # Add cnpj filter
+
+        # Add cnpj filter
+        if options.get('cnpj'): 
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('cnpj')}-{options.get('cnpj')}")
             if 'cnpj_flag' in local_cols:
                 subset_rules.append("and")
                 subset_rules.append(f"eq-{local_cols.get('cnpj_flag')}-'1'")
-        if options.get('id_pf'): # Add pf filter
+
+        # Add pf filter
+        if options.get('id_pf'): 
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('pf')}-{options.get('id_pf')}")
-        if options.get('column') and df not in ['catweb', 'auto']: # Add timeframe filter
+
+        # Add timeframe filter
+        if options.get('column') and df not in ['catweb', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria']: 
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('compet')}-{options.get('column')}")
 
@@ -277,7 +285,7 @@ class Empresa(BaseModel):
             )
 
         # Get statistics partitioning by timeframe
-        if 'compet' in cols and options.get('theme') not in ['catweb', 'auto']: # Ignores datasources with no timeframe definition
+        if 'compet' in cols and options.get('theme') not in ['catweb', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria']: # Ignores datasources with no timeframe definition
             options["categorias"] = [cols.get('compet')]
             options["ordenacao"] = [f"-{cols.get('compet')}"]
             result["stats_compet"] = json.loads(

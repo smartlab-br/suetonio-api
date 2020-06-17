@@ -27,6 +27,8 @@ class BaseRepository():
         "auto": "nu_cnpj_raiz",
         "rais": "nu_cnpj_raiz",
         "rfb" : "nu_cnpj_raiz",
+        "rfbsocios": "nu_cnpj_raiz",
+        "rfbparticipacaosocietaria": "nu_cnpj_cpf_socio",
         "sisben": "nu_cnpj_raiz",
         "catweb": {
             "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
@@ -47,6 +49,8 @@ class BaseRepository():
         'rais': 'nu_cnpj_cei',
         'renavam': 'nu_identificacao_prop_veic',
         'rfb': 'nu_cnpj',
+        'rfbsocios': 'nu_cnpj',
+        'rfbparticipacaosocietaria': 'nu_cnpj_cpf_socio',
         'sisben': 'nu_cnpj',
         "catweb": {
             "empregador":{"column": "nu_cnpj_empregador", "flag": "tp_empregador"},
@@ -460,13 +464,13 @@ class HadoopRepository(BaseRepository):
                 elif w_clause[0].upper() == 'IN':
                     arr_result.append(f'{w_clause[1]} IN ({",".join(w_clause[2:])})')
                 elif w_clause[0].upper() in ['EQON', 'NEON']:
-                    resulting_string = f"regexp_replace({w_clause[1]}, '[^[:digit:]]','')"
+                    resulting_string = f"regexp_replace(CAST({w_clause[1]} AS STRING), '[^[:digit:]]','')"
                     if len(w_clause) == 5: # Substring
                         resulting_string = f"substring({resulting_string}, {w_clause[3]}, {w_clause[4]})" 
                     op = '='
                     if w_clause[0].upper() == 'NEON':
                         op = '<>'
-                    arr_result.append(f"{resulting_string} {op} {w_clause[2]}")
+                    arr_result.append(f"{resulting_string} {op} '{w_clause[2]}'")
                 elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
                 elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:

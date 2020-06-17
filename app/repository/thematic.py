@@ -45,8 +45,8 @@ class ThematicRepository(ImpalaRepository):
         'catweb': "catweb",
         'auto': "tb_auto",
         'caged': "tb_caged_estab",
-        'rfbsocios': "rfb_dados_socio_tratado",
-        'rfbparticipacaosocietaria': "rfb_dados_socio_tratado", # Lookup diferente, mas mesma tabela
+        'rfbsocios': "rfb_dados_socios_tratado",
+        'rfbparticipacaosocietaria': "rfb_dados_socios_tratado", # Lookup diferente, mas mesma tabela
         'aeronaves': "tb_aeronaves",
         'renavam': "tb_renavam_2018",
         'cagedsaldo': "tb_caged_saldos",
