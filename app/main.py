@@ -10,6 +10,7 @@ from service.request_handler import FLPORequestHandler
 from resources.v1.municipio import MunicipiosResource, MunicipioResource
 
 from resources.v1.empresa.empresa import EmpresaResource
+from resources.v1.empresa.stats import EmpresaStatsResource
 from resources.v1.empresa.estabelecimento import EstabelecimentoResource
 
 from resources.v1.empresa.datasets import DatasetsResource
@@ -55,6 +56,7 @@ api.add_resource(MunicipioResource, '/municipio/<int:cd_municipio_ibge>')
 
 # Endpoints para obter datasets de empresa e estabelecimento
 api.add_resource(EmpresaResource, '/empresa/<string:cnpj_raiz>')
+api.add_resource(EmpresaStatsResource, '/estatisticas/empresa/<string:cnpj_raiz>')
 api.add_resource(EstabelecimentoResource, '/estabelecimento/<string:cnpj>')
 
 ## Endpoints temáticos
