@@ -47,7 +47,7 @@ class BaseRepositoryNamedQueryTest(unittest.TestCase):
         ''' Verifica correta obtenção de named query '''
         repo = StubHadoopRepository()
         qry_name = repo.get_named_query('QRY_FIND_DATASET')
-        self.assertEqual(qry_name, 'SELECT {} FROM {} {} {} {}')
+        self.assertEqual(qry_name, 'SELECT {} FROM {} {} {} {} {} {}')
 
     def test_validate_negative(self):
         ''' Verifica comportamento de obtenção de named query não mapeada '''
