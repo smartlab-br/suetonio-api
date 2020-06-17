@@ -1,13 +1,13 @@
 
 '''Main tests in API'''
 import unittest
-from test.stubs.repository import StubRepository
+from test.stubs.repository import StubHadoopRepository
 
-class StubRepositoryCustomPartition(StubRepository):
+class StubRepositoryCustomPartition(StubHadoopRepository):
     ''' Fake repo to test instance methods '''
     DEFAULT_PARTITIONING = ''
 
-class StubRepositoryCustomPartitionMultipleValues(StubRepository):
+class StubRepositoryCustomPartitionMultipleValues(StubHadoopRepository):
     ''' Fake repo to test instance methods '''
     DEFAULT_PARTITIONING = 'a, b, c'
 
@@ -15,7 +15,7 @@ class BaseRepositoryGeneralTest(unittest.TestCase):
     ''' General tests over StubRepo '''
     def test_table_name(self):
         ''' Verifica correta obtenção de nome de tabela '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         tbl_name = repo.get_table_name('MAIN')
         self.assertEqual(tbl_name, 'indicadores')
 
@@ -30,7 +30,7 @@ class BaseRepositoryGeneralTest(unittest.TestCase):
 
     def test_get_partitioning_default(self):
         ''' Verifica correta obtenção dde cláusula de particionamento '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertEqual(
             repo.replace_partition("min_part"),
             'MIN({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}'
@@ -45,26 +45,26 @@ class BaseRepositoryNamedQueryTest(unittest.TestCase):
     ''' Validates recovery of named query '''
     def test_validate_positive(self):
         ''' Verifica correta obtenção de named query '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         qry_name = repo.get_named_query('QRY_FIND_DATASET')
         self.assertEqual(qry_name, 'SELECT {} FROM {} {} {} {}')
 
     def test_validate_negative(self):
         ''' Verifica comportamento de obtenção de named query não mapeada '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(KeyError, repo.get_named_query, 'FAKE_QUERY')
 
 class BaseRepositoryJoinSuffixTest(unittest.TestCase):
     ''' Validates recovery of join suffix '''
     def test_validate_positive(self):
         ''' Verifica correta obtenção de sufixo '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         sfx_name = repo.get_join_suffix('municipio')
         self.assertEqual(sfx_name, '_mun')
 
     def test_validate_negative(self):
         ''' Verifica comportamento de obtenção de sufixo não mapeado '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(KeyError, repo.get_join_suffix, 'galaxia')
 
 class BaseRepositoryBuildAgrArrayTest(unittest.TestCase):
@@ -73,7 +73,7 @@ class BaseRepositoryBuildAgrArrayTest(unittest.TestCase):
         ''' Retorna exceção quando a agregação é inválida '''
         vlr = 'vl_indicador'
         agr = ['sum', 'CSTM']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(
             ValueError,
             repo.build_agr_array,
@@ -85,7 +85,7 @@ class BaseRepositoryBuildAgrArrayTest(unittest.TestCase):
         ''' Retorna string vazia se não houver agregação '''
         vlr = 'vl_indicador'
         agr = None
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_agr_array(vlr, agr)
         self.assertEqual(result, [])
 
@@ -93,7 +93,7 @@ class BaseRepositoryBuildAgrArrayTest(unittest.TestCase):
         ''' Retorna string vazia se não houver agregação '''
         vlr = 'vl_indicador'
         agr = []
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_agr_array(vlr, agr)
         self.assertEqual(result, [])
 
@@ -101,7 +101,7 @@ class BaseRepositoryBuildAgrArrayTest(unittest.TestCase):
         ''' Retorna string vazia se não houver agregação '''
         vlr = 'vl_indicador'
         agr = ['sum', 'max', 'distinct']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_agr_array(vlr, agr)
         expected = [
             'sum(vl_indicador) AS agr_sum_vl_indicador',
@@ -114,7 +114,7 @@ class BaseRepositoryBuildGenericAgrArrayTest(unittest.TestCase):
     def test_invalid(self):
         ''' Retorna exceção quando a agregação é inválida '''
         agr = ['count', 'CSTM']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(
             ValueError,
             repo.build_generic_agr_array,
@@ -124,21 +124,21 @@ class BaseRepositoryBuildGenericAgrArrayTest(unittest.TestCase):
     def test_null_agregation(self):
         ''' Retorna string vazia se não houver agregação '''
         agr = None
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_generic_agr_array(agr)
         self.assertEqual(result, [])
 
     def test_empty_agregation(self):
         ''' Retorna string vazia se não houver agregação '''
         agr = []
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_generic_agr_array(agr)
         self.assertEqual(result, [])
 
     def test_valid_agregation(self):
         ''' Retorna string vazia se não houver agregação '''
         agr = ['count', 'sum', 'distinct']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_generic_agr_array(agr)
         expected = [
             'count(*) AS agr_count',
@@ -151,7 +151,7 @@ class BaseRepositoryBuildOrderStringTest(unittest.TestCase):
     def test_invalid(self):
         ''' Retorna exceção quando a ordenação é inválida '''
         ordenacao = ['nm_indicador;select', 'nu_competencia']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(
             ValueError,
             repo.build_order_string,
@@ -161,21 +161,21 @@ class BaseRepositoryBuildOrderStringTest(unittest.TestCase):
     def test_null_agregation(self):
         ''' Retorna string vazia se não houver ordenação '''
         ordenacao = None
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_order_string(ordenacao)
         self.assertEqual(result, '')
 
     def test_empty_agregation(self):
         ''' Retorna string vazia se houver ordenação vazia '''
         ordenacao = []
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_order_string(ordenacao)
         self.assertEqual(result, '')
 
     def test_valid_agregation(self):
         ''' Verifica string de retorno em condição válida '''
         ordenacao = ['nm_indicador', 'nu_competencia', '-vl_indicador']
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         result = repo.build_order_string(ordenacao)
         expected = 'ORDER BY nm_indicador, nu_competencia, vl_indicador DESC'
         self.assertEqual(result, expected)
@@ -184,14 +184,14 @@ class BaseRepositoryLoadAndPrepareTest(unittest.TestCase):
     ''' Classe que testa o carregamento do dao '''
     def test_valid(self):
         ''' Verifica declaração do método de carregamento do dao. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertEqual(repo.get_dao(), 'Instanciei o DAO')
 
 class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
     ''' Classe de construção da cláusula do join '''
     def test_invalid_cats(self):
         ''' Lança erro ao tentar agrupar sem categoria. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = None
         agrs = None
         joined = 'municipio'
@@ -205,7 +205,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_invalid_join(self):
         ''' Lança erro ao tentar agrupar sem join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'vl_indicador']
         agrs = None
         joined = None
@@ -219,7 +219,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_default(self):
         ''' Check if suffix removal work in group by with join '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'lat_mun']
         agrs = ['nm_indicador']
         joined = 'municipio'
@@ -228,7 +228,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_renamed_cat(self):
         ''' Check if rename is ignored when building grouping string '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'lat-latitude']
         agrs = ['nm_indicador']
         joined = 'municipio'
@@ -237,7 +237,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_renamed_cat_joined(self):
         ''' Check if rename/suffix are ignored when building group string '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'lat_mun-latitude']
         agrs = ['nm_indicador']
         joined = 'municipio'
@@ -246,7 +246,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_invalid_agregation(self):
         ''' Lança erro ao tentar agrupar sem join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'vl_indicador']
         agrs = None
         joined = 'municipio'
@@ -260,7 +260,7 @@ class BaseRepositoryBuildJoinedGroupStringTest(unittest.TestCase):
 
     def test_with_distinct(self):
         ''' Check if string is empty when DISTINCT is used '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['nm_indicador', 'lat_mun-latitude']
         agrs = ['distinct']
         joined = 'municipio'
@@ -271,7 +271,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
     ''' Classe de construção da cláusula do join '''
     def test_no_where(self):
         ''' Retorna branco ao tentar filtrar sem where. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = None
         is_on = False
         joined = None
@@ -280,7 +280,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_empty_where(self):
         ''' Retorna branco ao tentar filtrar com where vazio. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = []
         is_on = False
         joined = None
@@ -289,7 +289,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_simple_valid(self):
         ''' Retorna cláusula where de consulta sem join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['eq-nu_competencia-2010', 'and', 'eq-cd_indicador-01_02_03_04']
         is_on = False
         joined = None
@@ -298,7 +298,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_hyphen_valid(self):
         ''' Retorna cláusula where de consulta sem join, com hífen. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['eq-nu_competencia-2010', 'and', 'eq-cd_indicador-01\\-02\\-03\\-04']
         is_on = False
         joined = None
@@ -307,7 +307,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_in_clause(self):
         ''' Retorna cláusula where de consulta com cláusula IN. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['eq-nu_competencia-2010', 'and',
                 'in-cd_indicador-01_02_03_04-01_02_03_05-01_02_03_06']
         is_on = False
@@ -321,7 +321,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_valid_where_join(self):
         ''' Retorna cláusula where de consulta com join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['eq-nu_competencia-2010', 'and', 'eq-cd_indicador-01_02_03_04']
         is_on = False
         joined = 'municipio'
@@ -330,7 +330,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_valid_empty_where_join(self):
         ''' Retorna cláusula where vazia de consulta com join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['gt-lat_mun-0', 'gt-long_mun-0']
         is_on = False
         joined = 'municipio'
@@ -339,7 +339,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_valid_empty_on_join(self):
         ''' Retorna cláusula on vazia de consulta com join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['eq-nu_competencia-2010', 'eq-cd_indicador-01_02_03_04']
         is_on = True
         joined = 'municipio'
@@ -348,7 +348,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_valid_on_join(self):
         ''' Retorna cláusula on de consulta com join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['gt-lat_mun-0', 'gt-long_mun-0']
         is_on = True
         joined = 'municipio'
@@ -357,7 +357,7 @@ class BaseRepositoryBuildFilterStringTest(unittest.TestCase):
 
     def test_invalid_on_join(self):
         ''' Retorna cláusula where de consulta com join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         whrs = ['gt-lat_mun-0', 'gt-long_mun-0']
         is_on = True
         joined = None
@@ -368,7 +368,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
     ''' Classe de construção das categorias '''
     def test_no_cats(self):
         ''' Lança exceção quando não há categorias. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = None
         options = {
             "categorias": cats,
@@ -384,7 +384,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
 
     def test_empty_cats(self):
         ''' Lança exceção quando há categorias vazias. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = []
         options = {
             "categorias": cats,
@@ -400,7 +400,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
 
     def test_no_valor(self):
         ''' Retorna normalmente quando não há valor. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador']
         options = {
             "categorias": cats,
@@ -412,7 +412,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
 
     def test_no_agrs(self):
         ''' Retorna normalmente quando não há agregações. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador']
         options = {
             "categorias": cats,
@@ -424,7 +424,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
 
     def test_full(self):
         ''' Retorna normalmente quando não há agregações. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador']
         options = {
             "categorias": cats,
@@ -440,7 +440,7 @@ class BaseRepositoryBuildCategoriasTest(unittest.TestCase):
 
     def test_invalid(self):
         ''' Lança exceção quando um campo é inválido. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador;', 'nu_competencia', 'vl_indicador']
         options = {
             "categorias": cats,
@@ -458,7 +458,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
     ''' Classe de construção das categorias '''
     def test_no_cats(self):
         ''' Lança exceção quando não há categorias. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = None
         valor = ['vl_indicador']
         agregacao = ['sum']
@@ -474,7 +474,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_empty_cats(self):
         ''' Lança exceção quando há categorias vazias. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = []
         valor = ['vl_indicador']
         agregacao = ['sum']
@@ -490,7 +490,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_no_valor(self):
         ''' Retorna normalmente quando não há valor. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun']
         valor = None
         agregacao = ['sum']
@@ -504,7 +504,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_no_agrs(self):
         ''' Retorna normalmente quando não há agregações. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun']
         valor = ['vl_indicador']
         agregacao = None
@@ -514,7 +514,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_no_join(self):
         ''' Retorna normalmente quando não há join. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador']
         valor = ['vl_indicador']
         agregacao = ['sum', 'pct_sum']
@@ -530,7 +530,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_full_join(self):
         ''' Retorna normalmente. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador', 'nu_competencia', 'vl_indicador', 'lat_mun', 'long_mun']
         valor = ['vl_indicador']
         agregacao = ['sum', 'pct_sum']
@@ -544,7 +544,7 @@ class BaseRepositoryBuildJoinedCategoriasTest(unittest.TestCase):
 
     def test_invalid(self):
         ''' Lança exceção quando um campo é inválido. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         cats = ['cd_indicador;', 'nu_competencia', 'vl_indicador']
         valor = ['vl_indicador']
         agregacao = ['sum', 'pct_sum']
@@ -562,7 +562,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
     ''' Classe de teste de combinações entre valor e agregação '''
     def test_one_val_one_aggr(self):
         ''' Um valor, uma agregação, sem sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['vl_indicador']
         agregacao = ['sum']
         result = repo.combine_val_aggr(valor, agregacao)
@@ -570,7 +570,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_one_val_one_aggr_suffix(self):
         ''' Um valor, uma agregação, com sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['vl_indicador_mun']
         agregacao = ['sum']
         result = repo.combine_val_aggr(valor, agregacao, '_mun')
@@ -578,7 +578,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_one_val_n_aggr(self):
         ''' Um valor, n agregações, sem sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['vl_indicador']
         agregacao = ['sum', 'count']
         result = repo.combine_val_aggr(valor, agregacao)
@@ -590,7 +590,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_one_val_n_aggr_suffix(self):
         ''' Um valor, n agregações, com sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['vl_indicador_mun']
         agregacao = ['sum', 'count']
         result = repo.combine_val_aggr(valor, agregacao, '_mun')
@@ -602,7 +602,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_n_val_one_aggr(self):
         ''' N valores, uma agregação, sem sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['nu_competencia', 'vl_indicador']
         agregacao = ['count']
         result = repo.combine_val_aggr(valor, agregacao)
@@ -614,7 +614,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_n_val_one_aggr_suffix(self):
         ''' N valores, uma agregação, com sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['nu_competencia_mun', 'vl_indicador_mun']
         agregacao = ['count']
         result = repo.combine_val_aggr(valor, agregacao, '_mun')
@@ -626,7 +626,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_n_val_n_aggr(self):
         ''' N valores, uma agregação, sem sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['nu_competencia', 'vl_indicador']
         agregacao = ['sum-count', 'sum-count']
         result = repo.combine_val_aggr(valor, agregacao)
@@ -640,7 +640,7 @@ class BaseRepositoryCombineValAggrTest(unittest.TestCase):
 
     def test_n_val_n_aggr_suffix(self):
         ''' N valores, n agregações, com sufixo. '''
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         valor = ['nu_competencia_mun', 'vl_indicador_mun']
         agregacao = ['sum-count', 'sum-count']
         result = repo.combine_val_aggr(valor, agregacao, '_mun')
@@ -661,7 +661,7 @@ class BaseRepositoryStdCalcsTest(unittest.TestCase):
             "calcs": ["min_part", "max_part"],
             "categorias": ["cd_mun_ibge", "nu_ano"]
         }
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertEqual(
             repo.build_std_calcs(options),
             ('MIN(vl_indicador) OVER(PARTITION BY cd_indicador) AS api_calc_min_part, '
@@ -676,7 +676,7 @@ class BaseRepositoryStdCalcsTest(unittest.TestCase):
             "calcs": ["avg_part"],
             "categorias": ["cd_mun_ibge", "nu_ano"]
         }
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertEqual(
             repo.build_std_calcs(options),
             ('MIN(vl_indicador) OVER(PARTITION BY cd_indicador) AS api_calc_min_part, '
@@ -723,7 +723,7 @@ class BaseRepositoryStdCalcsTest(unittest.TestCase):
             "categorias": ["cd_mun_ibge", "nu_ano"],
             "partition": "nu_ano"
         }
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertEqual(
             repo.build_std_calcs(options),
             ('MIN(vl_indicador) OVER(PARTITION BY nu_ano) AS api_calc_min_part, '
@@ -739,7 +739,7 @@ class BaseRepositoryStdCalcsTest(unittest.TestCase):
             "categorias": ["cd_mun_ibge", "nu_ano"],
             "partition": "nu_ano"
         }
-        repo = StubRepository()
+        repo = StubHadoopRepository()
         self.assertRaises(
             KeyError,
             repo.build_std_calcs,

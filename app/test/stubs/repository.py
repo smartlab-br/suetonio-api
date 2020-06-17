@@ -47,7 +47,7 @@ class StubHadoopRepository(HadoopRepository):
         ''' Overriding methd outside test scope '''
         return query
 
-class StubFindModelRepository(StubRepository):
+class StubFindModelRepository(StubHadoopRepository):
     ''' Fake repo to test instance methods '''
     def find_joined_dataset(self, options=None):
         ''' Overriding method outside test scope '''

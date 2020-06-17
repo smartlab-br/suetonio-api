@@ -141,6 +141,10 @@ class BaseRepository():
         ''' Construtor '''
         self.dao = self.load_and_prepare()
 
+    def load_and_prepare(self):
+        ''' Método abstrato para carregamento do dataset '''
+        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
+
     def get_dao(self):
         ''' Garantia de que o modelo estará carregado '''
         if self.dao is None:
@@ -178,10 +182,6 @@ class BaseRepository():
 
 class HadoopRepository(BaseRepository):
     '''Generic class for hive/impala repositories '''
-    def load_and_prepare(self):
-        ''' Método abstrato para carregamento do dataset '''
-        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
-
     def fetch_data(self, query):
         ''' Runs the query in pandas '''
         cursor = self.get_dao().cursor()
