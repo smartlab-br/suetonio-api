@@ -22,6 +22,74 @@ class BaseRepository():
     VAL_FIELD = 'vl_indicador'
     DEFAULT_GROUPING = 'nu_competencia, cd_indicador'
     DEFAULT_PARTITIONING = 'cd_indicador'
+    CNPJ_RAIZ_COLUMNS = {
+        "aeronaves": "cpf_cnpj",
+        "auto": "nu_cnpj_raiz",
+        "rais": "nu_cnpj_raiz",
+        "rfb" : "nu_cnpj_raiz",
+        "rfbsocios": "nu_cnpj_raiz",
+        "rfbparticipacaosocietaria": "nu_cnpj_cpf_socio",
+        "sisben": "nu_cnpj_raiz",
+        "catweb": {
+            "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
+            "concessao": {"column": "nu_cnpj_raiz_empregador_concessao", "flag": "tp_empregador_concessao"},
+            "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_raiz_tomador"}
+        },
+        "renavam": "nu_identificacao_prop_veic",
+        "cagedsaldo": "cnpj_cei"
+    }
+    CNPJ_COLUMNS = {
+        'aeronaves': 'cpf_cnpj',
+        'auto': 'nrinscricao',
+        'caged': 'cnpj_cei',
+        'cagedsaldo': 'cnpj_cei',
+        'cagedtrabalhador': 'cnpj_cei',
+        'cagedtrabalhadorano': 'cnpj_cei',
+        'rais': 'nu_cnpj_cei',
+        'renavam': 'nu_identificacao_prop_veic',
+        'rfb': 'nu_cnpj',
+        'rfbsocios': 'nu_cnpj',
+        'rfbparticipacaosocietaria': 'nu_cnpj_cpf_socio',
+        'sisben': 'nu_cnpj',
+        "catweb": {
+            "empregador":{"column": "nu_cnpj_empregador", "flag": "tp_empregador"},
+            "concessao": {"column": "nu_cnpj_empregador_concessao", "flag": "tp_empregador_concessao"},
+            "aeps": {"column": "nu_cnpj_empregador_aeps", "flag": "tp_empregador_aeps"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"}
+        }
+    } # Dados que possuem nomes diferentes para a coluna de cnpj
+    COMPET_COLUMNS = {
+        'auto': 'dtlavratura', # Date, used to filter
+        'caged': 'competencia_declarada',
+        'cagedsaldo': 'competencia_mov',
+        'cagedtrabalhador': 'competencia_declarada',
+        'cagedtrabalhadorano': 'ano_declarado',
+        'rais': 'nu_ano_rais',
+        'catweb': 'dt_acidente' # Date, used to filter
+    }
+    PF_COLUMNS = {
+        'aeronaves': 'proprietario_cpfcnpj',
+        'cagedtrabalhador': 'cpf',
+        'cagedtrabalhadorano': 'cpf',
+        'catweb': 'nu_nit',
+        'rais': 'nu_cpf',
+        'renavam': 'proprietario_cpfcnpj',
+        'rfb': 'nu_cpf_responsavel',
+        'rfbsocios': 'cnpj_cpf_socio',
+        'rfbparticipacaosocietaria': 'cnpj_cpf_socio'
+    } # Dados que possuem nomes diferentes para a coluna de identificação da Pessoa Física
+    PERSP_COLUMNS = { # Colunas que indicam diferentes perspectivas em um mesmo dataset
+        'catweb': 'origem_busca'
+    }
+    PERSP_VALUES = {
+        'catweb': {
+            'empregador': 'Empregador',
+            'tomador': 'Tomador',
+            'empregador_concessao': 'Empregador Concessão',
+            'empregador_aeps': 'Empregador AEPS'
+        }
+    }
     CALCS_DICT = {
         "min_part": 'MIN({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}',
         "max_part": 'MAX({val_field}) OVER(PARTITION BY {partition}) AS api_calc_{calc}',
@@ -77,11 +145,52 @@ class BaseRepository():
         ''' Construtor '''
         self.dao = self.load_and_prepare()
 
+    def load_and_prepare(self):
+        ''' Método abstrato para carregamento do dataset '''
+        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
+
     def get_dao(self):
         ''' Garantia de que o modelo estará carregado '''
         if self.dao is None:
             self.load_and_prepare()
         return self.dao
+
+    def get_column_defs(self, table_name):
+        ''' Get the column definitions from a dataframe '''
+        return {
+            'cnpj_raiz': self.CNPJ_RAIZ_COLUMNS.get(table_name, 'cnpj_raiz'),
+            'cnpj': self.CNPJ_COLUMNS.get(table_name, 'cnpj'),
+            'pf': self.PF_COLUMNS.get(table_name, 'cpf'),
+            'persp': self.PERSP_COLUMNS.get(table_name),
+            'persp_options': self.PERSP_VALUES.get(table_name),
+            'compet': self.COMPET_COLUMNS.get(table_name)
+        }
+    
+    @staticmethod
+    def decode_column_defs(original, table_name, perspective):
+        ''' Get the column definitions from a dataframe with a certain perspective'''
+        result = original.copy()
+        result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('column')
+        result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('flag')
+        result['cnpj'] = original.get('cnpj',{}).get(perspective,{}).get('column')
+        result['cnpj_flag'] = original.get('cnpj',{}).get(perspective,{}).get('flag')
+        return result
+
+    def get_table_name(self, theme):
+        ''' Obtém o nome de uma tabela do cloudera '''
+        tbl_name = self.TABLE_NAMES.get(theme)
+        if tbl_name is None:
+            raise KeyError("Invalid theme")
+        return tbl_name
+
+
+class HadoopRepository(BaseRepository):
+    '''Generic class for hive/impala repositories '''
+    def fetch_data(self, query):
+        ''' Runs the query in pandas '''
+        cursor = self.get_dao().cursor()
+        cursor.execute(query)
+        return as_pandas(cursor)
 
     @staticmethod
     def build_agr_array(valor=None, agregacao=None):
@@ -157,13 +266,6 @@ class BaseRepository():
         ''' Obtém uma string parametrizada de query '''
         qry_dict = self.NAMED_QUERIES
         return qry_dict[query_name]
-
-    def get_table_name(self, table_name):
-        ''' Obtém o nome de uma tabela do cloudera '''
-        tbl_dict = self.TABLE_NAMES
-        if table_name in tbl_dict:
-            return tbl_dict[table_name]
-        raise KeyError("Invalid theme")
 
     def get_join_condition(self, table_name, join_clauses=None):
         ''' Obtém a condição do join das tabelas '''
@@ -361,24 +463,26 @@ class BaseRepository():
                     )
                 elif w_clause[0].upper() == 'IN':
                     arr_result.append(f'{w_clause[1]} IN ({",".join(w_clause[2:])})')
+                elif w_clause[0].upper() in ['EQON', 'NEON']:
+                    resulting_string = f"regexp_replace(CAST({w_clause[1]} AS STRING), '[^[:digit:]]','')"
+                    if len(w_clause) == 5: # Substring
+                        resulting_string = f"substring({resulting_string}, {w_clause[3]}, {w_clause[4]})" 
+                    op = '='
+                    if w_clause[0].upper() == 'NEON':
+                        op = '<>'
+                    arr_result.append(f"{resulting_string} {op} '{w_clause[2]}'")
+                elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
+                    arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
+                elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:
+                    arr_result.append(f"substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
+                elif w_clause[0].upper() in ['EQLPINT', 'NELPINT', 'LELPINT', 'GELPINT', 'LTLPINT', 'GTLPINT']:
+                    arr_result.append(f"CAST(substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) AS INTEGER) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
         return ' '.join(arr_result)
 
     @staticmethod
     def get_agr_string(agregacao, valor):
         ''' Proxy for Query Builder function call '''
         return QueryBuilder.get_agr_string(agregacao, valor)
-
-class HadoopRepository(BaseRepository):
-    '''Generic class for hive/impala repositories '''
-    def load_and_prepare(self):
-        ''' Método abstrato para carregamento do dataset '''
-        raise NotImplementedError("Repositórios precisam implementar load_and_prepare")
-
-    def fetch_data(self, query):
-        ''' Runs the query in pandas '''
-        cursor = self.get_dao().cursor()
-        cursor.execute(query)
-        return as_pandas(cursor)
 
     def find_dataset(self, options=None):
         ''' Obtém dataset de acordo com os parâmetros informados '''
@@ -389,8 +493,8 @@ class HadoopRepository(BaseRepository):
             str_where = ' WHERE ' + self.build_filter_string(options['where'])
         str_group = ''
         nu_cats = options['categorias']
-        if options['pivot'] is not None:
-            nu_cats = nu_cats + options['pivot']
+        if options.get('pivot'):
+            nu_cats = nu_cats + options.get('pivot')
         if options['agregacao'] is not None and options['agregacao']:
             str_group = QueryBuilder.build_grouping_string(
                 nu_cats,
@@ -398,19 +502,20 @@ class HadoopRepository(BaseRepository):
             )
         str_categorias = self.build_categorias(nu_cats, options)
         str_limit = ''
-        if options['limit'] is not None:
-            str_limit = f'LIMIT {options["limit"]}'
+        if options.get('limit'):
+            str_limit = f'LIMIT {options.get("limit")}'
         str_offset = ''
-        if options['offset'] is not None:
-            str_offset = f'OFFSET {options["offset"]}'
+        if options.get('offset') is not None:
+            str_offset = f'OFFSET {options.get("offset")}'
         if 'theme' not in options:
             options['theme'] = 'MAIN'
+        
         query = self.get_named_query('QRY_FIND_DATASET').format(
             str_categorias,
-            self.get_table_name(options['theme']),
+            self.get_table_name(options.get('theme')),
             str_where,
             str_group,
-            self.build_order_string(options['ordenacao']),
+            self.build_order_string(options.get('ordenacao')),
             str_limit,
             str_offset
         )
@@ -439,12 +544,12 @@ class HadoopRepository(BaseRepository):
                                                       options['agregacao'], options['joined'])
         query = self.get_named_query('QRY_FIND_JOINED_DATASET').format(
             str_categorias,
-            self.get_table_name(options['theme']), # FROM
-            self.get_table_name(options['joined']), # JOIN
+            self.get_table_name(options.get('theme')), # FROM
+            self.get_table_name(options.get('joined')), # JOIN
             self.get_join_condition(options['joined'], options['where']), # ON
             str_where, # WHERE
             str_group, # GROUP BY
-            self.build_order_string(options['ordenacao']) # ORDER BY
+            self.build_order_string(options.get('ordenacao')) # ORDER BY
         )
 
         return self.fetch_data(query)
@@ -455,8 +560,12 @@ class ImpalaRepository(HadoopRepository):
         ''' Prepara o DAO '''
         self.dao = get_impala_connection()
 
-class HBaseRepository():
+class HBaseRepository(BaseRepository):
     ''' HBase connector class '''
+    def load_and_prepare(self): # No DAO - http request
+        ''' Prepara o DAO '''
+        pass
+
     @staticmethod
     def fetch_data(table, key, column_family, column):
         ''' Gets data from HBase instance '''
