@@ -463,20 +463,19 @@ class HadoopRepository(BaseRepository):
                     )
                 elif w_clause[0].upper() == 'IN':
                     arr_result.append(f'{w_clause[1]} IN ({",".join(w_clause[2:])})')
-                elif w_clause[0].upper() in ['EQON', 'NEON']:
+                elif w_clause[0].upper() in ['EQON', 'NEON', 'LEON', 'GEON', 'LTON', 'GTON']:
                     resulting_string = f"regexp_replace(CAST({w_clause[1]} AS STRING), '[^[:digit:]]','')"
                     if len(w_clause) == 5: # Substring
                         resulting_string = f"substring({resulting_string}, {w_clause[3]}, {w_clause[4]})" 
-                    op = '='
-                    if w_clause[0].upper() == 'NEON':
-                        op = '<>'
-                    arr_result.append(f"{resulting_string} {op} '{w_clause[2]}'")
+                    arr_result.append(f"{resulting_string} {simple_operators.get(w_clause[0].upper()[:2])} '{w_clause[2]}'")
                 elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
                 elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:
                     arr_result.append(f"substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
                 elif w_clause[0].upper() in ['EQLPINT', 'NELPINT', 'LELPINT', 'GELPINT', 'LTLPINT', 'GTLPINT']:
                     arr_result.append(f"CAST(substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) AS INTEGER) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
+                elif w_clause[0].upper() in ['EQSZ', 'NESZ', 'LESZ', 'GESZ', 'LTSZ', 'GTSZ']:
+                    arr_result.append(f"LENGTH(CAST({w_clause[1]} AS STRING)) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
         return ' '.join(arr_result)
 
     @staticmethod
