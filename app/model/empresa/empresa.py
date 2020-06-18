@@ -176,29 +176,42 @@ class Empresa(BaseModel):
                 raise AttributeError(f'{df} demanda uma competência')
             
             # If the dataset doesn't have a unique column to identify a company
-            if isinstance(cols.get('cnpj_raiz'), dict):
-                if options.get('perspective') is None:
-                    raise AttributeError(f'{df} demanda uma perspectiva')
-                else:
-                    local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
-            
-            local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
-            base_stats = json.loads(thematic_handler.find_dataset(local_options))
-            result[df] = base_stats.get('metadata')
-            if base_stats.get('dataset',[]):
-                result[df]["stats"] = base_stats.get('dataset')[0]
-
-            result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
-
-            if not options.get('perspective') and thematic_handler.get_persp_values(df):
+            if isinstance(cols.get('cnpj_raiz'), dict) and options.get('perspective') is None and thematic_handler.get_persp_values(df):
                 local_result = {}
                 for each_persp_key, each_persp_value in thematic_handler.get_persp_values(df).items():
-                    local_cols = thematic_handler.decode_column_defs(cols, df, options.get('perspective'))
-                    local_options = self.get_stats_local_options(options, cols, df, each_persp_key)
-                    local_options["where"].append(f"and")
-                    local_options["where"].append(f"eq-{thematic_handler.get_persp_columns(df)}-{each_persp_value}")
-                    local_result[each_persp_key] = self.get_grouped_stats(thematic_handler, local_options, cols) 
-                result[df][f"stats_{each_persp_key}"] = {**result[df], **local_result}
+                    local_cols = thematic_handler.decode_column_defs(cols, df, each_persp_key)
+                    local_options = self.get_stats_local_options(options, local_cols, df, each_persp_key)
+                    if df != 'catweb':
+                        local_options["where"].append(f"and")
+                        local_options["where"].append(f"eq-{thematic_handler.get_persp_columns(df)}-{each_persp_value}")
+                    base_stats = json.loads(thematic_handler.find_dataset(local_options))
+                    if df not in result:
+                        result[df] = base_stats.get('metadata')
+                    if base_stats.get('dataset',[]):
+                        local_result[each_persp_key] = base_stats.get('dataset')[0]
+                    else: # TODO - How to express no value??
+                        print(base_stats.get('dataset'))
+                        local_result[each_persp_key] = {'agr_count': 0}
+                    local_result[each_persp_key] = {
+                        **local_result[each_persp_key],
+                        **self.get_grouped_stats(thematic_handler, local_options, cols)
+                    }
+                result[df]['stats_persp'] = local_result
+            else:
+                if isinstance(cols.get('cnpj_raiz'), dict):
+                    local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
+                local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
+                print(local_options)
+                base_stats = json.loads(thematic_handler.find_dataset(local_options))
+                result[df] = base_stats.get('metadata')
+                
+                if base_stats.get('dataset',[]):
+                    result[df]["stats"] = base_stats.get('dataset')[0]
+                else: # TODO - How to express no value??
+                    print(base_stats.get('dataset'))
+                    result[df]["stats"] = {'agr_count': 0}
+
+                result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
         return result
 
     def get_stats_local_options(self, options, local_cols, df, persp):
@@ -207,8 +220,10 @@ class Empresa(BaseModel):
         # Change initial subset_rules for renavam and aeronaves
         if df == 'cagedsaldo':
             subset_rules = [f"eqlpint-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-14-0-1-8"]
-        elif df in ['rfbsocios', 'rfbparticipacaosocietaria']: # Some columns are varchar
-            subset_rules = [f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8"]
+        elif df == 'rfbsocios': # Some columns are varchar
+            subset_rules = [f"eqlponstr-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-8-0-1-8"]
+        elif df == 'rfbparticipacaosocietaria': # Some columns are varchar
+            subset_rules = [f"eqlponstr-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-14-0-1-8"]
         elif df in ['catweb', 'auto']: # Some columns are varchar
             subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'"]
         elif df == 'aeronaves':
@@ -274,6 +289,22 @@ class Empresa(BaseModel):
             subset_rules.append("and")
             subset_rules.append(f"eq-tipo_estab-1")
         
+        if df == 'cagedsaldo':
+            return {
+                "categorias": ['\'1\'-pos'],
+                "valor": ['qtd_admissoes','qtd_desligamentos','saldo_mov'],
+                "agregacao": ['count'],
+                "where": subset_rules,
+                "theme": df
+            }
+        elif df in ['rfb','rfbsocios','rfbparticipacaosocietaria']:
+            return {
+                "categorias": ['\'1\'-pos'],
+                "agregacao": ['count'],
+                "where": subset_rules,
+                "theme": df
+            }
+
         return {
             "categorias": [local_cols.get('cnpj_raiz')],
             "agregacao": ['count'],
@@ -284,6 +315,7 @@ class Empresa(BaseModel):
     @staticmethod
     def get_grouped_stats(thematic_handler, options, cols):
         ''' Get stats for dataframe partitions '''
+        # TODO 2 - Remove .0 from compet grouping
         result = {}        
 
         options['as_pandas'] = True

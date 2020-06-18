@@ -86,8 +86,8 @@ class BaseRepository():
         'catweb': {
             'empregador': 'Empregador',
             'tomador': 'Tomador',
-            'empregador_concessao': 'Empregador Concessão',
-            'empregador_aeps': 'Empregador AEPS'
+            'concessao': 'Empregador Concessão',
+            'aeps': 'Empregador AEPS'
         }
     }
     CALCS_DICT = {
@@ -467,6 +467,11 @@ class HadoopRepository(BaseRepository):
                     resulting_string = f"regexp_replace(CAST({w_clause[1]} AS STRING), '[^[:digit:]]','')"
                     if len(w_clause) == 5: # Substring
                         resulting_string = f"substring({resulting_string}, {w_clause[3]}, {w_clause[4]})" 
+                    arr_result.append(f"{resulting_string} {simple_operators.get(w_clause[0].upper()[:2])} '{w_clause[2]}'")
+                elif w_clause[0].upper() in ['EQLPONSTR', 'NELPONSTR', 'LELPONSTR', 'GELPONSTR', 'LTLPONSTR', 'GTLPONSTR']:
+                    resulting_string = f"regexp_replace(CAST({w_clause[1]} AS STRING), '[^[:digit:]]','')"
+                    if len(w_clause) == 7: # Substring
+                        resulting_string = f"substring(LPAD({resulting_string}, {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]})"
                     arr_result.append(f"{resulting_string} {simple_operators.get(w_clause[0].upper()[:2])} '{w_clause[2]}'")
                 elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
