@@ -183,6 +183,7 @@ class Empresa(BaseModel):
                     local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
             
             local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
+            print(local_options)
             base_stats = json.loads(thematic_handler.find_dataset(local_options))
             result[df] = base_stats.get('metadata')
             if base_stats.get('dataset',[]):
@@ -274,6 +275,15 @@ class Empresa(BaseModel):
             subset_rules.append("and")
             subset_rules.append(f"eq-tipo_estab-1")
         
+        if df == 'cagedsaldo':
+            return {
+            "categorias": ['\'1\'-pos'],
+            "valor": ['qtd_admissoes','qtd_desligamentos','saldo_mov'],
+            "agregacao": ['count'],
+            "where": subset_rules,
+            "theme": df
+        }
+
         return {
             "categorias": [local_cols.get('cnpj_raiz')],
             "agregacao": ['count'],
