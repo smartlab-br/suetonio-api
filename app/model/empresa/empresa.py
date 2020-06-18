@@ -211,11 +211,23 @@ class Empresa(BaseModel):
             subset_rules = [f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8"]
         elif df in ['catweb', 'auto']: # Some columns are varchar
             subset_rules = [f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'"]
-        elif df in ['aeronaves', 'renavam']:
+        elif df == 'aeronaves':
             subset_rules = [
                 f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8",
                 "and",
                 f"neon-{local_cols.get('cnpj_raiz')}-00000000000000"
+            ]
+        elif df == 'renavam':
+            subset_rules = [
+                f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'-1-8",
+                "and",
+                f"eqsz-{local_cols.get('cnpj_raiz')}-14"
+            ]
+        elif df == 'sisben':        
+            subset_rules = [
+                f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'",
+                "and",
+                f"ne-{local_cols.get('cnpj')}-'00000000000000'"
             ]
         
         if 'cnpj_raiz_flag' in local_cols:
@@ -236,7 +248,8 @@ class Empresa(BaseModel):
             subset_rules.append(f"eq-{local_cols.get('pf')}-{options.get('id_pf')}")
 
         # Add timeframe filter
-        if options.get('column') and df not in ['catweb', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria']: 
+        ds_no_compet = ['catweb', 'sisben', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria', 'aeronaves', 'renavam']
+        if options.get('column') and df not in ds_no_compet: 
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('compet')}-{options.get('column')}")
 
@@ -285,7 +298,8 @@ class Empresa(BaseModel):
             )
 
         # Get statistics partitioning by timeframe
-        if 'compet' in cols and options.get('theme') not in ['catweb', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria']: # Ignores datasources with no timeframe definition
+        ds_no_compet = ['catweb', 'sisben', 'auto', 'rfb', 'rfbsocios', 'rfbparticipacaosocietaria', 'aeronaves', 'renavam']
+        if 'compet' in cols and options.get('theme') not in ds_no_compet: # Ignores datasources with no timeframe definition
             options["categorias"] = [cols.get('compet')]
             options["ordenacao"] = [f"-{cols.get('compet')}"]
             result["stats_compet"] = json.loads(
