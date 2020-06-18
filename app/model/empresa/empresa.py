@@ -189,8 +189,7 @@ class Empresa(BaseModel):
                         result[df] = base_stats.get('metadata')
                     if base_stats.get('dataset',[]):
                         local_result[each_persp_key] = base_stats.get('dataset')[0]
-                    else: # TODO - How to express no value??
-                        print(base_stats.get('dataset'))
+                    else:
                         local_result[each_persp_key] = {'agr_count': 0}
                     local_result[each_persp_key] = {
                         **local_result[each_persp_key],
@@ -207,9 +206,7 @@ class Empresa(BaseModel):
                 
                 if base_stats.get('dataset',[]):
                     result[df]["stats"] = base_stats.get('dataset')[0]
-                else: # TODO - How to express no value??
-                    print(base_stats.get('dataset'))
-                    result[df]["stats"] = {'agr_count': 0}
+                else: result[df]["stats"] = {'agr_count': 0}
 
                 result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, local_options, cols)}
         return result
@@ -334,8 +331,10 @@ class Empresa(BaseModel):
         if 'compet' in cols and options.get('theme') not in ds_no_compet: # Ignores datasources with no timeframe definition
             options["categorias"] = [cols.get('compet')]
             options["ordenacao"] = [f"-{cols.get('compet')}"]
+            current_df = thematic_handler.find_dataset(options)
+            current_df[cols.get('compet')] = current_df[cols.get('compet')].apply(str)
             result["stats_compet"] = json.loads(
-                thematic_handler.find_dataset(options).set_index(cols.get('compet')).to_json(orient="index")
+                current_df.set_index(cols.get('compet')).to_json(orient="index")
             )
         
             # Get statistics partitioning by unit and timeframe
