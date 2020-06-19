@@ -34,7 +34,7 @@ class BaseRepository():
             "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
             "concessao": {"column": "nu_cnpj_raiz_empregador_concessao", "flag": "tp_empregador_concessao"},
             "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
-            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_raiz_tomador"}
+            "tomador": {"column": "nu_cnpj_raiz_tomador", "flag": "tp_tomador"}
         },
         "renavam": "nu_identificacao_prop_veic",
         "cagedsaldo": "cnpj_cei"

@@ -190,7 +190,7 @@ class Empresa(BaseModel):
                     if base_stats.get('dataset',[]):
                         local_result[each_persp_key] = base_stats.get('dataset')[0]
                     else:
-                        local_result[each_persp_key] = {'agr_count': 0}
+                        local_result[each_persp_key] = self.build_empty_stats(local_options, local_cols, options)
                     local_result[each_persp_key] = {
                         **local_result[each_persp_key],
                         **self.get_grouped_stats(thematic_handler, options, local_options, local_cols)
@@ -205,7 +205,8 @@ class Empresa(BaseModel):
                 
                 if base_stats.get('dataset',[]):
                     result[df]["stats"] = base_stats.get('dataset')[0]
-                else: result[df]["stats"] = {'agr_count': 0}
+                else:
+                    result[df]["stats"] = self.build_empty_stats(local_options, local_cols, options)
 
                 result[df] = {**result[df], **self.get_grouped_stats(thematic_handler, options, local_options, cols)}
         return result
@@ -307,6 +308,18 @@ class Empresa(BaseModel):
             "where": subset_rules,
             "theme": df
         }    
+
+    @staticmethod
+    def build_empty_stats(options, cols, original_options):
+        result = {f"{cols.get('cnpj_raiz')}": f"{original_options.get('cnpj_raiz')}"}
+        if 'valor' in options:
+            for val in options.get('valor'):
+                for agr in options.get('agregacao'):
+                    result[f"agr_{agr}_{val}"] = 0
+        else:
+            for agr in options.get('agregacao'):
+                result[f"agr_{agr}"] = 0
+        return result
 
     @staticmethod
     def get_grouped_stats(thematic_handler, original_options, options, cols):
