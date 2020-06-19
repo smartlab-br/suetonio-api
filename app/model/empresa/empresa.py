@@ -176,9 +176,12 @@ class Empresa(BaseModel):
                 raise AttributeError(f'{df} demanda uma competência')
             
             # If the dataset doesn't have a unique column to identify a company
-            if isinstance(cols.get('cnpj_raiz'), dict) and options.get('perspective') is None and thematic_handler.get_persp_values(df):
+            if isinstance(cols.get('cnpj_raiz'), dict) and thematic_handler.get_persp_values(df):
                 local_result = {}
-                for each_persp_key, each_persp_value in thematic_handler.get_persp_values(df).items():
+                perspectives = thematic_handler.get_persp_values(df)
+                if options.get('perspective'):
+                    perspectives = {k: v for k, v in perspectives.items() if k == options.get('perspective')}
+                for each_persp_key, each_persp_value in perspectives.items():
                     local_cols = thematic_handler.decode_column_defs(cols, df, each_persp_key)
                     local_options = self.get_stats_local_options(options, local_cols, df, each_persp_key)
                     if df != 'catweb':
@@ -231,7 +234,7 @@ class Empresa(BaseModel):
             ]
         elif df == 'renavam':
             subset_rules = [
-                f"eq-{local_cols.get('cnpj_raiz')}-'{options.get('cnpj_raiz')}'-1-8",
+                f"eqon-{local_cols.get('cnpj_raiz')}-{options.get('cnpj_raiz')}-1-8",
                 "and",
                 f"eqsz-{local_cols.get('cnpj_raiz')}-14"
             ]
@@ -245,6 +248,11 @@ class Empresa(BaseModel):
         if 'cnpj_raiz_flag' in local_cols:
             subset_rules.append("and")
             subset_rules.append(f"eq-{local_cols.get('cnpj_raiz_flag')}-'1'")
+            for prec in local_cols.get('cnpj_raiz_preceding_exclusions',[]):
+                # subset_rules.append("and")
+                # subset_rules = [f"ne-{local_cols.get('cnpj_raiz')}-'{prec.get('column')}'"]
+                subset_rules.append("and")
+                subset_rules.append(f"ne-{prec.get('flag')}-'1'")
 
         # Add cnpj filter
         if options.get('cnpj'): 
@@ -253,6 +261,11 @@ class Empresa(BaseModel):
             if 'cnpj_flag' in local_cols:
                 subset_rules.append("and")
                 subset_rules.append(f"eq-{local_cols.get('cnpj_flag')}-'1'")
+                for prec in local_cols.get('cnpj_preceding_exclusions',[]):
+                    # subset_rules.append("and")
+                    # subset_rules = [f"ne-{local_cols.get('cnpj_raiz')}-'{prec.get('column')}'"]
+                    subset_rules.append("and")
+                    subset_rules.append(f"ne-{prec.get('flag')}-'1'")
 
         # Add pf filter
         if options.get('id_pf'): 

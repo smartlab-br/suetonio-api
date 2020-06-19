@@ -32,9 +32,9 @@ class BaseRepository():
         "sisben": "nu_cnpj_raiz",
         "catweb": {
             "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
+            "tomador": {"column": "nu_cnpj_raiz_tomador", "flag": "tp_tomador"},
             "concessao": {"column": "nu_cnpj_raiz_empregador_concessao", "flag": "tp_empregador_concessao"},
             "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
-            "tomador": {"column": "nu_cnpj_raiz_tomador", "flag": "tp_tomador"}
         },
         "renavam": "nu_identificacao_prop_veic",
         "cagedsaldo": "cnpj_cei"
@@ -54,9 +54,9 @@ class BaseRepository():
         'sisben': 'nu_cnpj',
         "catweb": {
             "empregador":{"column": "nu_cnpj_empregador", "flag": "tp_empregador"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"},
             "concessao": {"column": "nu_cnpj_empregador_concessao", "flag": "tp_empregador_concessao"},
             "aeps": {"column": "nu_cnpj_empregador_aeps", "flag": "tp_empregador_aeps"},
-            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"}
         }
     } # Dados que possuem nomes diferentes para a coluna de cnpj
     COMPET_COLUMNS = {
@@ -170,10 +170,26 @@ class BaseRepository():
     def decode_column_defs(original, table_name, perspective):
         ''' Get the column definitions from a dataframe with a certain perspective'''
         result = original.copy()
+
         result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('column')
         result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('flag')
+        precedence = []
+        for persp_key, persp in original.get('cnpj_raiz',{}).items():
+            if persp_key == perspective:
+                break
+            precedence.append(persp)
+        result['cnpj_raiz_preceding_exclusions'] = precedence
+            
+
         result['cnpj'] = original.get('cnpj',{}).get(perspective,{}).get('column')
         result['cnpj_flag'] = original.get('cnpj',{}).get(perspective,{}).get('flag')
+        precedence = []
+        for persp_key, persp in original.get('cnpj',{}).items():
+            if persp_key == perspective:
+                break
+            precedence.append(persp)
+        result['cnpj_preceding_exclusions'] = precedence
+        
         return result
 
     def get_table_name(self, theme):
@@ -473,7 +489,7 @@ class HadoopRepository(BaseRepository):
                     if len(w_clause) == 7: # Substring
                         resulting_string = f"substring(LPAD({resulting_string}, {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]})"
                     arr_result.append(f"{resulting_string} {simple_operators.get(w_clause[0].upper()[:2])} '{w_clause[2]}'")
-                elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
+                elif w_clause[0].upper() in ['EQSTR', 'NESTR', 'LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
                 elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:
                     arr_result.append(f"substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
