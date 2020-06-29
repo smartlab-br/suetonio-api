@@ -296,14 +296,14 @@ class HadoopRepository(BaseRepository):
         if not QueryBuilder.check_params(options, ['categorias']):
             raise ValueError('Invalid Categories - required')
         categorias = QueryBuilder.transform_categorias(categorias)
-        prepended_aggr = QueryBuilder.prepend_aggregations(options['agregacao'])
+        prepended_aggr = QueryBuilder.prepend_aggregations(options.get('agregacao'))
         str_calcs = ''
         if QueryBuilder.check_params(options, ['calcs']):
             calcs_options = options.copy()
             calcs_options['categorias'] = categorias
             str_calcs += self.build_std_calcs(calcs_options)
         if QueryBuilder.check_params(options, ['agregacao', 'valor']):
-            tmp_cats = self.combine_val_aggr(options['valor'], options['agregacao'])
+            tmp_cats = self.combine_val_aggr(options.get('valor'), options.get('agregacao'))
             if not isinstance(tmp_cats, list):
                 categorias += tmp_cats.split(", ")
             else:
@@ -509,30 +509,30 @@ class HadoopRepository(BaseRepository):
         if QueryBuilder.catch_injection(options):
             raise ValueError('SQL reserved words not allowed!')
         str_where = ''
-        if options['where'] is not None:
-            str_where = ' WHERE ' + self.build_filter_string(options['where'])
+        if options.get('where') is not None:
+            str_where = ' WHERE ' + self.build_filter_string(options.get('where'))
         str_group = ''
         nu_cats = options['categorias']
-        if options.get('pivot'):
-            nu_cats = nu_cats + options.get('pivot')
-        if options['agregacao'] is not None and options['agregacao']:
+        if options.get('pivot') is not None:
+            nu_cats = nu_cats + options['pivot']
+        if options.get('agregacao', False):
             str_group = QueryBuilder.build_grouping_string(
                 nu_cats,
                 options['agregacao']
             )
         str_categorias = self.build_categorias(nu_cats, options)
         str_limit = ''
-        if options.get('limit'):
+        if options.get('limit') is not None:
             str_limit = f'LIMIT {options.get("limit")}'
         str_offset = ''
         if options.get('offset') is not None:
             str_offset = f'OFFSET {options.get("offset")}'
         if 'theme' not in options:
             options['theme'] = 'MAIN'
-        
+
         query = self.get_named_query('QRY_FIND_DATASET').format(
             str_categorias,
-            self.get_table_name(options.get('theme')),
+            self.get_table_name(options['theme']),
             str_where,
             str_group,
             self.build_order_string(options.get('ordenacao')),
