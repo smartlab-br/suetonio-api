@@ -25,15 +25,17 @@ class BaseModelFindPivotedDatasetTest(unittest.TestCase):
                 "calcs": None
             }, **COMMON_OPTIONS
         }
-        result = "".join(model.find_dataset(options).split())
+        result = model.find_dataset(options)
 
-        str_expected = COMMON_EXPECTED_RESPONSE_STRING.format(
-            """
-            "nm_indicador": "Ficticio",
-            "2047":0.5,
-            "2099":1.0
-            """
-        )
-        expected = "".join(str_expected.split())
-
+        expected = {
+            'metadata': {'fonte': 'Instituto STUB'},
+            'dataset': [
+                {
+                    'nm_indicador': 'Ficticio',
+                    2047: 0.5,
+                    2099: 1.0
+                }
+            ]
+        }
+        
         self.assertEqual(result, expected)
