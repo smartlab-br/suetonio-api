@@ -214,7 +214,7 @@ class HadoopRepository(BaseRepository):
                 if df[col].dtype == object:
                     lst_objs = df[col].dropna()
                     if len(lst_objs) > 0 and isinstance(lst_objs.iloc[0],Decimal):
-                        df[col] = df[col].as_type(float)
+                        df[col] = df[col].astype(float)
         return df
 
     @staticmethod
