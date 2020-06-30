@@ -206,7 +206,12 @@ class HadoopRepository(BaseRepository):
         ''' Runs the query in pandas '''
         cursor = self.get_dao().cursor()
         cursor.execute(query)
-        return as_pandas(cursor)
+        df = as_pandas(cursor)
+        print(df.dtypes)
+        for col in df.columns:
+            if df[col].dtype == 'Decimal':
+                df[col] = df[col].as_type(str)
+        return df
 
     @staticmethod
     def build_agr_array(valor=None, agregacao=None):
