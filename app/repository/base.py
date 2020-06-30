@@ -3,11 +3,13 @@ import json
 import base64
 import gzip
 import requests
+from decimal import Decimal
 from impala.util import as_pandas
 from pandas.io.json import json_normalize
 from flask import current_app
 from datasources import get_impala_connection, get_redis_pool
 from service.query_builder import QueryBuilder
+import numpy as np
 
 #pylint: disable=R0903
 class BaseRepository():
@@ -207,10 +209,12 @@ class HadoopRepository(BaseRepository):
         cursor = self.get_dao().cursor()
         cursor.execute(query)
         df = as_pandas(cursor)
-        print(df.dtypes)
-        for col in df.columns:
-            if df[col].dtype == 'Decimal':
-                df[col] = df[col].as_type(str)
+        if not df.empty:
+            for col in df.columns:
+                if df[col].dtype == object:
+                    lst_objs = df[col].dropna()
+                    if len(lst_objs) > 0 and isinstance(lst_objs.first(),Decimal):
+                        df[col] = df[col].as_type(float)
         return df
 
     @staticmethod
