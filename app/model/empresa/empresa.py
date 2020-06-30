@@ -187,7 +187,7 @@ class Empresa(BaseModel):
                     if df != 'catweb':
                         local_options["where"].append(f"and")
                         local_options["where"].append(f"eq-{thematic_handler.get_persp_columns(df)}-{each_persp_value}")
-                    base_stats = json.loads(thematic_handler.find_dataset(local_options))
+                    base_stats = thematic_handler.find_dataset(local_options)
                     if df not in result:
                         result[df] = base_stats.get('metadata')
                     if base_stats.get('dataset',[]):
