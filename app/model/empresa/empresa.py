@@ -203,7 +203,7 @@ class Empresa(BaseModel):
                 if isinstance(cols.get('cnpj_raiz'), dict):
                     local_cols = thematic_handler.decode_column_defs(local_cols, df, options.get('perspective'))
                 local_options = self.get_stats_local_options(options, local_cols, df, options.get('perspective'))
-                base_stats = json.loads(thematic_handler.find_dataset(local_options))
+                base_stats = thematic_handler.find_dataset(local_options)
                 result[df] = base_stats.get('metadata')
                 
                 if base_stats.get('dataset',[]):
