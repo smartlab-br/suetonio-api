@@ -65,10 +65,10 @@ class BaseModel():
                     "metadata": self.fetch_metadata(options),
                     "dataset": dataset.to_dict('records')
                 }
-        return f'{{ \
-            "metadata": {json.dumps(self.fetch_metadata(options))}, \
-            "dataset": {dataset.to_json(orient="records")} \
-            }}'
+        return {
+            "metadata": self.fetch_metadata(options),
+            "dataset": dataset.to_dict(orient="records")
+        }
 
     def get_repo(self):
         ''' Método abstrato para carregamento do repositório '''

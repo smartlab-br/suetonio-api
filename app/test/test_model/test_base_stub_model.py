@@ -49,17 +49,11 @@ class BaseModelWrapResultTest(unittest.TestCase):
         ''' Verifica se retorna dataset encapsulado corretamente '''
         model = StubModel()
 
-        str_dataset = StringIO(
-            """nm_indicador;nu_competencia;vl_indicador
-                Ficticio;2099;1
-                """
-        )
+        str_dataset = StringIO("nm_indicador;nu_competencia;vl_indicador\nFicticio;2099;1")
         dataset = pd.read_csv(str_dataset, sep=";")
 
-        str_expected = """{
-            "metadata": {
-                "fonte": "Instituto STUB"
-            },
+        expected = {
+            "metadata": {"fonte": "Instituto STUB"},
             "dataset": [
                 {
                     "nm_indicador": "Ficticio",
@@ -67,11 +61,9 @@ class BaseModelWrapResultTest(unittest.TestCase):
                     "vl_indicador": 1
                 }
             ]
-        }"""
+        }
 
-        result = "".join(model.wrap_result(dataset).split())
-        expected = "".join(str_expected.split())
-        self.assertEqual(result, expected)
+        self.assertEqual(model.wrap_result(dataset), expected)
 
 class BaseModelTemplateTest(unittest.TestCase):
     ''' Test behaviours linked to first-tier template interpolation '''

@@ -56,12 +56,7 @@ class StubFindModelRepository(StubHadoopRepository):
     #pylint: disable=R0201
     def find_dataset(self, _options):
         ''' Retorno estático para execução dos testes '''
-        str_dataset = StringIO(
-            """nm_indicador;nu_competencia;vl_indicador
-                Ficticio;2099;1
-                Ficticio;2047;0.5
-                """
-        )
+        str_dataset = StringIO("nm_indicador;nu_competencia;vl_indicador\nFicticio;2099;1\nFicticio;2047;0.5")
         dataset = pd.read_csv(str_dataset, sep=";")
         return dataset
 
@@ -69,11 +64,6 @@ class StubFindModelAgrRepository(StubFindModelRepository):
     ''' Fake repo to test instance methods '''
     def find_dataset(self, _options):
         ''' Retorno estático para execução dos testes '''
-        str_dataset = StringIO(
-            """nm_indicador;nu_competencia;agr_sum_vl_indicador
-                Ficticio;2099;1
-                Ficticio;2047;0.5
-                """
-        )
+        str_dataset = StringIO("nm_indicador;nu_competencia;agr_sum_vl_indicador\nFicticio;2099;1\nFicticio;2047;0.5")
         dataset = pd.read_csv(str_dataset, sep=";")
         return dataset
