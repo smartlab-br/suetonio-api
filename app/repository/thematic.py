@@ -52,6 +52,7 @@ class ThematicRepository(ImpalaRepository):
         'cagedsaldo': "tb_caged_saldos",
         'cagedtrabalhador': "tb_caged_trabalhador",
         'cagedtrabalhadorano': "tb_caged_trabalhador", # Temporalidade diferente, mas mesma tabela
+        'cnae': 'tb_cnae_ibge',
 
         'incidenciaescravidao': 'incidencia_trabalho_escravo',
         'migracoesescravos': 'te_migracoes',
