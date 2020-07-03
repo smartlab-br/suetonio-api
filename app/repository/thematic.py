@@ -41,6 +41,7 @@ class ThematicRepository(ImpalaRepository):
 
         'rais': 'tb_rais',
         'rfb': "rfb_dados_cadastrais_2018",
+        'rfbpf': "rfb_cadastro_cpf_2018",
         'sisben': "concessao_2018",
         'catweb': "catweb",
         'auto': "tb_auto",
