@@ -3,11 +3,13 @@ import json
 import base64
 import gzip
 import requests
+from decimal import Decimal
 from impala.util import as_pandas
 from pandas.io.json import json_normalize
 from flask import current_app
 from datasources import get_impala_connection, get_redis_pool
 from service.query_builder import QueryBuilder
+import numpy as np
 
 #pylint: disable=R0903
 class BaseRepository():
@@ -32,9 +34,9 @@ class BaseRepository():
         "sisben": "nu_cnpj_raiz",
         "catweb": {
             "empregador":{"column": "nu_cnpj_raiz_empregador", "flag": "tp_empregador"},
+            "tomador": {"column": "nu_cnpj_raiz_tomador", "flag": "tp_tomador"},
             "concessao": {"column": "nu_cnpj_raiz_empregador_concessao", "flag": "tp_empregador_concessao"},
             "aeps": {"column": "nu_cnpj_raiz_empregador_aeps", "flag": "tp_empregador_aeps"},
-            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_raiz_tomador"}
         },
         "renavam": "nu_identificacao_prop_veic",
         "cagedsaldo": "cnpj_cei"
@@ -54,9 +56,9 @@ class BaseRepository():
         'sisben': 'nu_cnpj',
         "catweb": {
             "empregador":{"column": "nu_cnpj_empregador", "flag": "tp_empregador"},
+            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"},
             "concessao": {"column": "nu_cnpj_empregador_concessao", "flag": "tp_empregador_concessao"},
             "aeps": {"column": "nu_cnpj_empregador_aeps", "flag": "tp_empregador_aeps"},
-            "tomador": {"column": "tp_tomador", "flag": "nu_cnpj_tomador"}
         }
     } # Dados que possuem nomes diferentes para a coluna de cnpj
     COMPET_COLUMNS = {
@@ -170,10 +172,26 @@ class BaseRepository():
     def decode_column_defs(original, table_name, perspective):
         ''' Get the column definitions from a dataframe with a certain perspective'''
         result = original.copy()
+
         result['cnpj_raiz'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('column')
         result['cnpj_raiz_flag'] = original.get('cnpj_raiz',{}).get(perspective,{}).get('flag')
+        precedence = []
+        for persp_key, persp in original.get('cnpj_raiz',{}).items():
+            if persp_key == perspective:
+                break
+            precedence.append(persp)
+        result['cnpj_raiz_preceding_exclusions'] = precedence
+            
+
         result['cnpj'] = original.get('cnpj',{}).get(perspective,{}).get('column')
         result['cnpj_flag'] = original.get('cnpj',{}).get(perspective,{}).get('flag')
+        precedence = []
+        for persp_key, persp in original.get('cnpj',{}).items():
+            if persp_key == perspective:
+                break
+            precedence.append(persp)
+        result['cnpj_preceding_exclusions'] = precedence
+        
         return result
 
     def get_table_name(self, theme):
@@ -190,7 +208,14 @@ class HadoopRepository(BaseRepository):
         ''' Runs the query in pandas '''
         cursor = self.get_dao().cursor()
         cursor.execute(query)
-        return as_pandas(cursor)
+        df = as_pandas(cursor)
+        if not df.empty:
+            for col in df.columns:
+                if df[col].dtype == object:
+                    lst_objs = df[col].dropna()
+                    if len(lst_objs) > 0 and isinstance(lst_objs.iloc[0],Decimal):
+                        df[col] = df[col].astype(float)
+        return df
 
     @staticmethod
     def build_agr_array(valor=None, agregacao=None):
@@ -280,14 +305,14 @@ class HadoopRepository(BaseRepository):
         if not QueryBuilder.check_params(options, ['categorias']):
             raise ValueError('Invalid Categories - required')
         categorias = QueryBuilder.transform_categorias(categorias)
-        prepended_aggr = QueryBuilder.prepend_aggregations(options['agregacao'])
+        prepended_aggr = QueryBuilder.prepend_aggregations(options.get('agregacao'))
         str_calcs = ''
         if QueryBuilder.check_params(options, ['calcs']):
             calcs_options = options.copy()
             calcs_options['categorias'] = categorias
             str_calcs += self.build_std_calcs(calcs_options)
         if QueryBuilder.check_params(options, ['agregacao', 'valor']):
-            tmp_cats = self.combine_val_aggr(options['valor'], options['agregacao'])
+            tmp_cats = self.combine_val_aggr(options.get('valor'), options.get('agregacao'))
             if not isinstance(tmp_cats, list):
                 categorias += tmp_cats.split(", ")
             else:
@@ -473,7 +498,7 @@ class HadoopRepository(BaseRepository):
                     if len(w_clause) == 7: # Substring
                         resulting_string = f"substring(LPAD({resulting_string}, {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]})"
                     arr_result.append(f"{resulting_string} {simple_operators.get(w_clause[0].upper()[:2])} '{w_clause[2]}'")
-                elif w_clause[0].upper() in ['LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
+                elif w_clause[0].upper() in ['EQSTR', 'NESTR', 'LESTR', 'GESTR', 'LTSTR', 'GTSTR']:
                     arr_result.append(f"substring(CAST({w_clause[1]} AS STRING), {w_clause[3]}, {w_clause[4]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
                 elif w_clause[0].upper() in ['EQLPSTR', 'NELPSTR', 'LELPSTR', 'GELPSTR', 'LTLPSTR', 'GTLPSTR']:
                     arr_result.append(f"substring(LPAD(CAST({w_clause[1]} AS VARCHAR({w_clause[3]})), {w_clause[3]}, '{w_clause[4]}'), {w_clause[5]}, {w_clause[6]}) {simple_operators.get(w_clause[0].upper()[:2])} {w_clause[2]}")
@@ -493,30 +518,30 @@ class HadoopRepository(BaseRepository):
         if QueryBuilder.catch_injection(options):
             raise ValueError('SQL reserved words not allowed!')
         str_where = ''
-        if options['where'] is not None:
-            str_where = ' WHERE ' + self.build_filter_string(options['where'])
+        if options.get('where') is not None:
+            str_where = ' WHERE ' + self.build_filter_string(options.get('where'))
         str_group = ''
         nu_cats = options['categorias']
-        if options.get('pivot'):
-            nu_cats = nu_cats + options.get('pivot')
-        if options['agregacao'] is not None and options['agregacao']:
+        if options.get('pivot') is not None:
+            nu_cats = nu_cats + options['pivot']
+        if options.get('agregacao', False):
             str_group = QueryBuilder.build_grouping_string(
                 nu_cats,
                 options['agregacao']
             )
         str_categorias = self.build_categorias(nu_cats, options)
         str_limit = ''
-        if options.get('limit'):
+        if options.get('limit') is not None:
             str_limit = f'LIMIT {options.get("limit")}'
         str_offset = ''
         if options.get('offset') is not None:
             str_offset = f'OFFSET {options.get("offset")}'
         if 'theme' not in options:
             options['theme'] = 'MAIN'
-        
+
         query = self.get_named_query('QRY_FIND_DATASET').format(
             str_categorias,
-            self.get_table_name(options.get('theme')),
+            self.get_table_name(options['theme']),
             str_where,
             str_group,
             self.build_order_string(options.get('ordenacao')),

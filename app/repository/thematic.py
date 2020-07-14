@@ -41,6 +41,7 @@ class ThematicRepository(ImpalaRepository):
 
         'rais': 'tb_rais',
         'rfb': "rfb_dados_cadastrais_2018",
+        'rfbpf': "rfb_cadastro_cpf_2018",
         'sisben': "concessao_2018",
         'catweb': "catweb",
         'auto': "tb_auto",
@@ -52,6 +53,7 @@ class ThematicRepository(ImpalaRepository):
         'cagedsaldo': "tb_caged_saldos",
         'cagedtrabalhador': "tb_caged_trabalhador",
         'cagedtrabalhadorano': "tb_caged_trabalhador", # Temporalidade diferente, mas mesma tabela
+        'cnae': 'tb_cnae_ibge',
 
         'incidenciaescravidao': 'incidencia_trabalho_escravo',
         'migracoesescravos': 'te_migracoes',

@@ -27,23 +27,24 @@ class BaseModelFindDatasetTest(unittest.TestCase):
                 "pivot": None
             }, **COMMON_OPTIONS
         }
-        result = "".join(model.find_dataset(options).split())
 
-        str_expected = COMMON_EXPECTED_RESPONSE_STRING.format(
-            """
-                "nm_indicador": "Ficticio",
-                "nu_competencia": 2099,
-                "vl_indicador": 1.0
-            },
-            {
-                "nm_indicador": "Ficticio",
-                "nu_competencia": 2047,
-                "vl_indicador": 0.5
-            """
-        )
-        expected = "".join(str_expected.split())
+        expected = {
+            'metadata': {'fonte': 'Instituto STUB'},
+            'dataset': [
+                {
+                    "nm_indicador": "Ficticio",
+                    "nu_competencia": 2099,
+                    "vl_indicador": 1.0
+                },
+                {
+                    "nm_indicador": "Ficticio",
+                    "nu_competencia": 2047,
+                    "vl_indicador": 0.5
+                }
+            ]
+        }
 
-        self.assertEqual(result, expected)
+        self.assertEqual(model.find_dataset(options), expected)
 
     def test_no_wrap(self):
         ''' Verifica se retorna o dataset sem o wrapping '''
@@ -92,21 +93,21 @@ class BaseModelFindJoinedDatasetTest(unittest.TestCase):
             "joined": 'municipio',
             "pivot": None
         }
-        str_result = model.find_joined_dataset(options)
-        result = "".join(str_result.split())
+        
+        expected = {
+            'metadata': {'fonte': 'Instituto STUB'},
+            'dataset': [
+                {
+                    "nm_indicador": "Ficticio",
+                    "nu_competencia": 2099,
+                    "vl_indicador": 1.0
+                },
+                {
+                    "nm_indicador": "Ficticio",
+                    "nu_competencia": 2047,
+                    "vl_indicador": 0.5
+                }
+            ]
+        }
 
-        str_expected = COMMON_EXPECTED_RESPONSE_STRING.format(
-            """
-                "nm_indicador": "Ficticio",
-                "nu_competencia": 2099,
-                "vl_indicador": 1.0
-            },
-            {
-                "nm_indicador": "Ficticio",
-                "nu_competencia": 2047,
-                "vl_indicador": 0.5
-            """
-        )
-        expected = "".join(str_expected.split())
-
-        self.assertEqual(result, expected)
+        self.assertEqual(model.find_joined_dataset(options), expected)

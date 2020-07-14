@@ -32,13 +32,12 @@ class OptionsBuilderTest(unittest.TestCase):
                 "valor": ['c', 'd'],
                 "agregacao": ['e', 'f'],
                 "ordenacao": ['g', 'h'],
-                "filtros": r'eq-o-comma\,separated,and,eq-p-q',
                 "where": ['eq-o-comma,separated', 'and', 'eq-p-q'],
                 "pivot": ['i', 'j'],
                 "limit": '10',
                 "offset": '11',
                 "calcs": ['k', 'l'],
-                "partition": ['m', 'n']
+                "partition": ['m', 'n'],
             }
         )
 

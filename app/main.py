@@ -5,6 +5,9 @@ from flask_restful_swagger_2 import Api
 from flask import Flask
 from flask import g
 
+import logging
+import sys
+
 from service.request_handler import FLPORequestHandler
 
 from resources.v1.municipio import MunicipiosResource, MunicipioResource
@@ -20,7 +23,7 @@ from resources.v1.empresa.report import ReportResource
 # Endpoints genéricos de temáticos
 from resources.v1.thematic import ThematicResource
 
-from resources.v1.healthchecks import HCAlive
+from resources.v1.healthchecks import HCAlive, HCReady
 
 CONFIG = {
     "dev": "config.dev.DevelopmentConfig",
@@ -48,6 +51,8 @@ CORS = CORS(application, resources={r"/*": {"origins": "*"}})
 api = Api(application, api_version='0.1', api_spec_url='/api/swagger') #pylint: disable=C0103
 
 api.add_resource(HCAlive, '/hcalive')
+api.add_resource(HCReady, '/hcready')
+
 api.add_resource(DatasetsResource, '/datasets')
 api.add_resource(ReportResource, '/report/<string:cnpj_raiz>')
 
@@ -64,4 +69,9 @@ api.add_resource(EstabelecimentoResource, '/estabelecimento/<string:cnpj>')
 api.add_resource(ThematicResource, '/thematic/<string:theme>')
 
 if __name__ == '__main__':
+    # logging.basicConfig(filename='werkzeug.log', level=logging.ERROR)
+    print(application.config)
+    logging.basicConfig(stream=sys.stderr, level=application.config.get('LOG_LEVEL'))
+    LOGGER = logging.getLogger('werkzeug')
+    LOGGER.setLevel(logging.ERROR)
     application.run(request_handler=FLPORequestHandler)
