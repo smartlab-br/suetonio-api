@@ -1,10 +1,12 @@
 ''' Configuration loader for staging environment '''
 import os
+import logging
 from kazoo.client import KazooClient
 
 #pylint: disable=R0903
 class StagingConfig():
     ''' Configuration handler '''
+    LOG_LEVEL = logging.INFO
     CORS_AUTOMATIC_OPTIONS = True
 
     zk = KazooClient(hosts=os.getenv('ZOOKEEPER_HOST') + ':' + os.getenv('ZOOKEEPER_PORT'))

@@ -1,9 +1,12 @@
 ''' Configuration loader for development environment '''
 import os
+import logging
 
 #pylint: disable=R0903
 class DevelopmentConfig():
     ''' Configuration handler '''
+    LOG_LEVEL = logging.DEBUG
+    
     IMPALA_HOST = os.getenv('IMPALA_HOST')
     IMPALA_PORT = os.getenv('IMPALA_PORT')
     IMPALA_USER = os.getenv('IMPALA_USER')

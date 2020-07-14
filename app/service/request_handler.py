@@ -8,7 +8,7 @@ class FLPORequestHandler(WSGIRequestHandler):
     # Just like WSGIRequestHandler, but without "- -"
     def log(self, _type, message, *args):
         ''' Silences some endpoints '''
-        silent_endpoints = ["/hcalive", "/static", "/favicon.ico"]
+        silent_endpoints = ["/hcalive", "/hcready", "/static", "/favicon.ico"]
         if (isinstance(args[1], str) or not isinstance(args[1], Iterable) or (
                 not any(slnt in args[1] for slnt in silent_endpoints) and
                 args[1] != '/')):
