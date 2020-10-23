@@ -132,7 +132,7 @@ class EmpresaResource(BaseResource):
         except (AttributeError, KeyError, ValueError) as err:
             return str(err), 400
 
-def get_domain(self):
+    def get_domain(self):
         ''' Carrega o modelo de domínio, se não o encontrar '''
         if self.domain is None:
             self.set_domain()
