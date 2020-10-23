@@ -40,7 +40,8 @@ class Thematic(BaseModel):
                 'teindicadoresmunicipais', 'teindicadoresestaduais',
                 'teindicadoresunidadempt', 'temlexposicaoresgate',
                 'temlexposicaoresgatefeatures', 'temlexposicaonaturais',
-                'temlexposicaonaturaisfeatures'
+                'temlexposicaonaturaisfeatures',
+                'auto', 'auto_trabalhadores'
             ],
             'source': {
                 'fonte': 'Ministério da Economia - Secretaria de Trabalho',
