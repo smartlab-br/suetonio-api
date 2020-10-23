@@ -45,6 +45,7 @@ class ThematicRepository(ImpalaRepository):
         'sisben': "concessao_2018",
         'catweb': "catweb",
         'auto': "tb_auto",
+        'auto_trabalhadores': "tb_auto_trabalhador",
         'caged': "tb_caged_estab",
         'rfbsocios': "rfb_dados_socios_tratado",
         'rfbparticipacaosocietaria': "rfb_dados_socios_tratado", # Lookup diferente, mas mesma tabela
