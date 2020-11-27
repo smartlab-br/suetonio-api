@@ -65,7 +65,7 @@ class BaseRepository():
         'auto': 'dtlavratura', # Date, used to filter
         'caged': 'competencia_declarada',
         'cagedsaldo': 'competencia_mov',
-        'cagedtrabalhador': 'competencia_declarada',
+        'cagedtrabalhador': 'competencia_mov',
         'cagedtrabalhadorano': 'ano_declarado',
         'rais': 'nu_ano_rais',
         'catweb': 'dt_acidente' # Date, used to filter
