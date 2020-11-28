@@ -70,7 +70,6 @@ api.add_resource(ThematicResource, '/thematic/<string:theme>')
 
 if __name__ == '__main__':
     # logging.basicConfig(filename='werkzeug.log', level=logging.ERROR)
-    print(application.config)
     logging.basicConfig(stream=sys.stderr, level=application.config.get('LOG_LEVEL'))
     LOGGER = logging.getLogger('werkzeug')
     LOGGER.setLevel(logging.ERROR)
