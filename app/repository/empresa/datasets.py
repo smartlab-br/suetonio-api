@@ -11,7 +11,7 @@ class DatasetsRepository(RedisRepository):
         'sisben': ','.join([str(ano) for ano in range(2020,2017, -1)]),
         'catweb': ','.join([str(ano) for ano in range(2020,2010, -1)]),
         'auto': ','.join([str(ano) for ano in range(2019,2001, -1)]),
-        'caged': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2020,2008, -1) for mes in range(12, 0, -1) if not (ano == 2020 and mes > 9)]),
+        'caged': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2020,2008, -1) for mes in range(12, 0, -1) if not (ano == 2020 and mes > 8)]),
         'cagedsaldo': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2020,2008, -1) for mes in range(12, 0, -1) if not (ano == 2020 and mes > 8)]),
         'cagedtrabalhador': ','.join(['{:d}{:02d}'.format(ano,mes) for ano in range(2020,2002, -1) for mes in range(12, 0, -1) if not (ano == 2020 and mes > 8)]),
         'cagedtrabalhadorano': ','.join([str(ano) for ano in range(2020,2002, -1)]),
